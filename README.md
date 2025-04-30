@@ -31,4 +31,4 @@ Creating a website to interact with several custom built chess engines.
 
 - Need to figure out how to update the drawing every _ seconds
 - Need to get basic mouse interaction working 
-- Need to make a board repersentation for the front end and some basic functionally to work with it (moveing pieces)
+- Need to make a board repersentation for the front end and some basic functionally to work with it (moving pieces)

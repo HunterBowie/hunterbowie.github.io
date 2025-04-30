@@ -2,8 +2,51 @@ import {
   CANVAS_MARGIN,
   CHESS_BOARD_ID,
   DARK_SQUARE,
+  DRAW_DELAY,
   LIGHT_SQUARE,
 } from "./constants.js";
+
+import { BLACK } from "./chess.js";
+
+const pieceNames = ["pawn", "knight", "bishop", "rook", "queen", "king"];
+
+let pieceImages = {};
+
+/**
+ * Initializes the context/canvas with the proper configs.
+ * @returns { Promise }
+ */
+export function initDraw() {
+  // setup canvas resizing
+  resize();
+  window.addEventListener("resize", () => resize());
+
+  // load images
+  const whitePiecesNames = pieceNames.map((name) => "white-" + name);
+  const blackPiecesNames = pieceNames.map((name) => "black-" + name);
+  const allPiecesNames = whitePiecesNames.concat(blackPiecesNames);
+  const allPieces = allPiecesNames.map((name) => {
+    let image = new Image();
+    image.src = "assets/" + name + ".png";
+    return image;
+  });
+
+  allPieces.forEach((image, index) => {
+    if (index < allPieces.length / 2) {
+      pieceImages[index + 1] = image;
+    } else {
+      index -= allPieces.length / 2;
+      pieceImages[(index + 1) | BLACK] = image;
+    }
+  });
+
+  return Promise.all(
+    Array.from(allPieces).map(
+      (image) =>
+        new Promise((resolve) => image.addEventListener("load", resolve))
+    )
+  );
+}
 
 /**
  * Gets the canvas that repersents the chess board.
@@ -52,30 +95,18 @@ function drawBoardTiles() {
 }
 
 /**
- * Returns the file path to the image for the given piece.
- * @param { number } piece
- */
-function findPath(piece) {
-  let color = "white";
-  if (piece & (0b1000 != 0)) {
-    color = "black";
-  }
-  const pieceOrder = ["pawn", "bishop", "knight", "rook", "queen", "king"];
-  const pieceType = pieceOrder[piece & 0b0111];
-
-  return "assets/" + color + "-" + pieceType + ".png";
-}
-
-/**
  * Draws the chess board pieces.
- * @param { Array }
+ * @param { number[][] }
  */
 function drawBoardPieces(board) {
   const squareWidth = getSquareWidth();
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
-      drawImage(
-        findPath(board[row][col]),
+      if (board[row][col] === 0) {
+        continue;
+      }
+      drawPieceImage(
+        board[row][col],
         col * squareWidth,
         row * squareWidth,
         squareWidth,
@@ -88,7 +119,7 @@ function drawBoardPieces(board) {
 /**
  * Resizes the canvas to fit the window size.
  */
-export function resize() {
+function resize() {
   const ctx = getContext();
   const canvas = getCanvas();
 
@@ -109,23 +140,13 @@ export function resize() {
 }
 
 /**
- * Initializes the context/canvas with the proper configs.
+ * Starts a process of updating the drawings.
  */
-export function initDraw() {
-  resize();
-  window.addEventListener("resize", () => resize());
-
-  //   loadImages()
-}
-
-/**
- * Updates the display using an interval.
- */
-export function updateDrawingAtInterval(board) {
+export function startUpdatingDrawing(board) {
   setInterval(() => {
     drawBoardTiles();
     drawBoardPieces(board);
-  }, 1000);
+  }, DRAW_DELAY);
 }
 
 /**
@@ -144,19 +165,12 @@ export function drawRect(color, x, y, width, height) {
 
 /**
  * Draws an image to the context (better for a single image).
- * @param {string} imagePath
+ * @param {number} piece
  * @param {number} x
  * @param {number} y
  * @param {number} width
  * @param {number} height
  */
-export function drawImage(imagePath, x, y, width, height) {
-  const ctx = getContext();
-  const image = new Image();
-
-  image.addEventListener("load", () => {
-    ctx.drawImage(image, x, y, width, height);
-  });
-
-  image.src = imagePath;
+export function drawPieceImage(piece, x, y, size) {
+  getContext().drawImage(pieceImages[piece], x, y, size, size);
 }
