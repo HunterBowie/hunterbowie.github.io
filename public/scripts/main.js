@@ -1,4 +1,4 @@
-import { board } from "./chess.js";
+import { Game } from "./chess.js";
 import { initDraw, startUpdatingDrawing } from "./draw.js";
 import { startUpdatingInput } from "./input.js";
 
@@ -15,8 +15,9 @@ function main() {
  * Begins the game.
  */
 function startGame() {
-  startUpdatingDrawing(board);
-  startUpdatingInput(board);
+  let game = new Game();
+  startUpdatingDrawing(game);
+  startUpdatingInput(game);
 }
 
 window.addEventListener("load", main);

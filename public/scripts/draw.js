@@ -108,9 +108,7 @@ function drawBoardPieces(board) {
       drawPieceImage(
         board[row][col],
         col * squareWidth,
-        row * squareWidth,
-        squareWidth,
-        squareWidth
+        row * squareWidth
       );
     }
   }
@@ -141,12 +139,30 @@ function resize() {
 
 /**
  * Starts a process of updating the drawings.
+ * @param { Game } game
  */
-export function startUpdatingDrawing(board) {
+export function startUpdatingDrawing(game) {
   setInterval(() => {
     drawBoardTiles();
-    drawBoardPieces(board);
+    drawBoardPieces(game.board);
+    drawHeldPiece(game);
   }, DRAW_DELAY);
+}
+
+/**
+ * Draws the held piece.
+ * @param { Game } game
+ */
+function drawHeldPiece(game) {
+  if (game.heldPiece == 0) {
+    return;
+  }
+  const halfPieceWidth = Math.floor(getSquareWidth() / 2);
+  drawPieceImage(
+    game.heldPiece,
+    game.heldPiecePoint.x - halfPieceWidth,
+    game.heldPiecePoint.y - halfPieceWidth
+  );
 }
 
 /**
@@ -171,6 +187,7 @@ export function drawRect(color, x, y, width, height) {
  * @param {number} width
  * @param {number} height
  */
-export function drawPieceImage(piece, x, y, size) {
-  getContext().drawImage(pieceImages[piece], x, y, size, size);
+export function drawPieceImage(piece, x, y) {
+  const squareWidth = getSquareWidth();
+  getContext().drawImage(pieceImages[piece], x, y, squareWidth, squareWidth);
 }

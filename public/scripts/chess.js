@@ -8,24 +8,36 @@ export const KING = 6; // -110
 export const WHITE = 0; // 0---
 export const BLACK = 8; // 1---
 
-export let board = Array.from({ length: 8 }, () => new Array(8).fill(0));
+export class Game {
+  constructor() {
+    this.board = Array.from({ length: 8 }, () => new Array(8).fill(0));
+    this.heldPiece = 0;
+    this.heldPieceHome = null;
+    this.heldPiecePoint = null;
+    this.turn = "white";
+    this.initPieces();
+    // more to come
+  }
 
-board[1][2] = BLACK | ROOK;
-board[7][0] = WHITE | PAWN;
-board[3][2] = BLACK | KING;
-board[0][0] = WHITE | QUEEN;
+  initPieces() {
+    this.board[1][2] = BLACK | ROOK;
+    this.board[7][0] = WHITE | PAWN;
+    this.board[3][2] = BLACK | KING;
+    this.board[0][0] = WHITE | QUEEN;
+  }
+
+}
 
 /**
  * Returns true if the given position is invalid
- * @param { number } row
- * @param { number } col
+ * @param { Pos } pos
  * @returns { boolean }
  */
-export function isInvalidPos(row, col) {
-  if (row < 0 || col < 0) {
+export function isInvalidPos(pos) {
+  if (pos.row < 0 || pos.col < 0) {
     return true;
   }
-  if (row >= 8 || col >= 8) {
+  if (pos.row >= 8 || pos.col >= 8) {
     return true;
   }
   return false;

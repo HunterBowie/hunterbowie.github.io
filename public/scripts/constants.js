@@ -9,3 +9,6 @@ export const CHESS_BOARD_ID = "chess-board";
 export const CANVAS_MARGIN = 20;
 
 export const DRAW_DELAY = 60 / 1000;
+
+
+
