@@ -9,7 +9,9 @@ export const LIGHT_SQUARE = "rgb(136 174 163)";
 // export const DARK_SQUARE = "#006D77";
 // export const LIGHT_SQUARE = "#83C5BE";
 
-export const BOARD_WIDTH = 400;
-export const SQUARE_WIDTH = BOARD_WIDTH / 8;
+// export const BOARD_WIDTH = 400;
+// export const SQUARE_WIDTH = BOARD_WIDTH / 8;
 
 export const CHESS_BOARD_ID = "chess-board";
+
+export const CANVAS_MARGIN = 20;
