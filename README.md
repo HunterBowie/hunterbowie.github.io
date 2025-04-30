@@ -25,3 +25,10 @@ Creating a website to interact with several custom built chess engines.
 - got the whole canvas javascript thing figured out
 - started learning about javascript more and using jsdoc
 - managed to figure out how to do proper scaling with dpi (ie. chatgpt did)
+
+
+### Things To Do
+
+- Need to figure out how to update the drawing every _ seconds
+- Need to get basic mouse interaction working 
+- Need to make a board repersentation for the front end and some basic functionally to work with it (moveing pieces)
