@@ -14,3 +14,14 @@ Creating a website to interact with several custom built chess engines.
 
 - learn about some of the tools/packages used
 - play around with the code to make it do more complicated things 
+
+
+# Day 2
+
+### Things Done
+
+- got a board rendered to the website
+- got github pages working
+- got the whole canvas javascript thing figured out
+- started learning about javascript more and using jsdoc
+- managed to figure out how to do proper scaling with dpi (ie. chatgpt did)
