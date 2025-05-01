@@ -32,3 +32,19 @@ Creating a website to interact with several custom built chess engines.
 - Need to figure out how to update the drawing every _ seconds
 - Need to get basic mouse interaction working 
 - Need to make a board repersentation for the front end and some basic functionally to work with it (moving pieces)
+
+
+# Day 3
+
+### Things Done
+
+- Figured out piece move legality (except knight)
+- Color scheme and highlighting effect implementation
+- Organized javascript files more
+
+### Things To Do
+
+- Finish move legality implementation
+- Start to actually implement game logic and turns ect.
+- Get some kind of text to display scoreboard king of stuff like current turn,
+ number of turns passed, piece score, computer eval score ect.

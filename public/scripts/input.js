@@ -1,4 +1,3 @@
-import { getMoves, isInvalidPos } from "./chess/game.js";
 import { getCanvas, getSquareWidth } from "./draw.js";
 
 /**
@@ -31,42 +30,72 @@ function getMousePos(event) {
  */
 export function startUpdatingInput(game) {
   let board = game.board;
-  let heldSlot = game.heldPieceSlot;
+  let heldSlot = game.heldSlot;
 
   window.addEventListener("mousedown", (event) => {
+    // game.setPossibleMoves()
+    // game.clearPossibleMoves();
+    // game.canPickup(pos);
+    // game.pickupPiece(pos);
+    // game.possibleMoves = [];
+    // if (isInvalidPos(pos)) {
+    //   return;
+    // }
+    // const piece = board[pos.row][pos.col];
+    // if (piece == 0) {
+    //   return;
+    // }
+    // game.possibleMoves = getMoves(pos, board);
+    // heldSlot.piece = piece;
+    // board[pos.row][pos.col] = 0;
+    // heldSlot.homePos = pos;
     const pos = getMousePos(event);
-    if (isInvalidPos(pos)) {
-      return;
+
+    game.clearPossibleMoves();
+
+    if (game.canPickupPiece(pos)) {
+      game.setPossibleMoves(pos);
+      game.pickupPiece(pos);
+      game.hoverHoldingPiece(getMousePoint(event));
     }
-    const piece = board[pos.row][pos.col];
-    if (piece == 0) {
-      return;
-    }
-    game.highlightedSquares = getMoves(pos, board);
-    heldSlot.piece = piece;
-    board[pos.row][pos.col] = 0;
-    heldSlot.homePos = pos;
-    heldSlot.hoverPoint = getMousePoint(event);
+
+    // heldSlot.hoverPoint = getMousePoint(event);
   });
 
   window.addEventListener("mouseup", (event) => {
     const pos = getMousePos(event);
-    if (isInvalidPos(pos)) {
-      // return piece to orginal square
-      board[heldSlot.homePos.row][heldSlot.homePos.col] = heldSlot.piece;
-      game.heldPieceSlot = { piece: 0, homePos: null, hoverPoint: null };
-      heldSlot = game.heldPieceSlot;
-      return;
+    if (game.isHoldingPiece()) {
+      game.dropPiece(pos);
     }
-    if (heldSlot.piece != 0) {
-      board[pos.row][pos.col] = heldSlot.piece;
-      game.heldPieceSlot = { piece: 0, homePos: null, hoverPoint: null };
-      heldSlot = game.heldPieceSlot;
-    }
-    game.highlightedSquares = [];
+    // TODO: REMOVE
+    heldSlot = game.heldSlot;
+
+    // if (heldSlot.piece === 0) return;
+
+    // // now must be holding a piece
+
+    // const hasPossibleMove = game.possibleMoves.filter(
+    //   (move) => move.row === pos.row && move.col === pos.col
+    // );
+    // if (isInvalidPos(pos) || hasPossibleMove.length == 0) {
+    //   // return piece to orginal square
+    //   board[heldSlot.homePos.row][heldSlot.homePos.col] = heldSlot.piece;
+    //   game.heldSlot = { piece: 0, homePos: null, hoverPoint: null };
+    //   heldSlot = game.heldSlot;
+    //   return;
+    // }
+
+    // // move piece to valid move
+    // board[pos.row][pos.col] = heldSlot.piece;
+    // game.heldSlot = { piece: 0, homePos: null, hoverPoint: null };
+    // heldSlot = game.heldSlot;
+
+    // game.possibleMoves = [];
   });
 
   window.addEventListener("mousemove", (event) => {
+    // game.isHoldingPiece();
+    // game.hoverHoldingPiece(getMousePoint(event));
     if (heldSlot.piece != 0) {
       heldSlot.hoverPoint = getMousePoint(event);
     }

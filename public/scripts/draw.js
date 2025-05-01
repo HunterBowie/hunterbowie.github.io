@@ -121,10 +121,14 @@ function drawBoardPieces(game) {
 function resize() {
   const ctx = getContext();
   const canvas = getCanvas();
+  const infoBar = document.getElementById("info-bar");
 
-  const size = Math.min(window.innerWidth, window.innerHeight) - CANVAS_MARGIN;
+  const size =
+    Math.min(window.innerWidth, window.innerHeight - 20) - CANVAS_MARGIN;
 
   const dpr = window.devicePixelRatio || 1;
+
+  infoBar.style.width = `${size}px`;
 
   // Set internal resolution
   canvas.width = size * dpr;
@@ -142,7 +146,7 @@ function resize() {
  * Draws the highlighted squares to the canvas.
  * @param { Pos[] } squares
  */
-function drawHighlightedSquares(squares) {
+function drawPossibleMoves(squares) {
   const squareWidth = getSquareWidth();
   squares.forEach((pos, index) => {
     drawRect(
@@ -162,18 +166,19 @@ function drawHighlightedSquares(squares) {
 export function startUpdatingDrawing(game) {
   setInterval(() => {
     drawBoardTiles();
-    drawHighlightedSquares(game.highlightedSquares);
-    drawSpecialHighlightedSquare(game.heldPieceSlot);
+    drawPossibleMoves(game.possibleMoves);
+    drawHomeTile(game.heldSlot);
     drawBoardPieces(game);
-    drawHeldPiece(game.heldPieceSlot);
+    drawHeldPiece(game.heldSlot);
   }, DRAW_DELAY);
 }
 
 /**
- * Draws the held piece.
- * @param { heldPieceSlot } slot
+ * Draws the highlighted tile for the piece's home square
+ * if it is picked up.
+ * @param { heldSlot } slot
  */
-function drawSpecialHighlightedSquare(slot) {
+function drawHomeTile(slot) {
   if (slot.piece == 0) {
     return;
   }
@@ -189,7 +194,7 @@ function drawSpecialHighlightedSquare(slot) {
 
 /**
  * Draws the held piece.
- * @param { heldPieceSlot } slot
+ * @param { heldSlot } slot
  */
 function drawHeldPiece(slot) {
   if (slot.piece == 0) {

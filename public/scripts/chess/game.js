@@ -1,195 +1,186 @@
+import { FENProcessingError, PieceMovementError } from "../errors.js";
+import { getMoves, isInvalidPos } from "./move.js";
 import {
   BISHOP,
   BLACK,
-  getType,
-  isPiece,
-  isSameColor,
-  isWhite,
   KING,
+  KNIGHT,
   PAWN,
   QUEEN,
   ROOK,
   WHITE,
+  isPiece,
 } from "./piece.js";
 
+const GameState = {
+  WAITING_FOR_PLAYER: 1,
+  WAITING_FOR_BOT: 2,
+};
+
+/**
+ * Repersents the chess game.
+ */
 export class Game {
   constructor() {
     this.board = Array.from({ length: 8 }, () => new Array(8).fill(0));
-    this.heldPieceSlot = { piece: 0, homePos: null, hoverPoint: null };
-    this.highlightedSquares = [];
+    this.heldSlot = { piece: 0, homePos: null, hoverPoint: null };
+    this.possibleMoves = [];
     this.turn = "white";
-    this.initPieces();
+    this.state = GameState.WAITING_FOR_PLAYER;
+    this.loadFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
     // more to come
   }
 
-  initPieces() {
-    this.board[1][2] = BLACK | QUEEN;
-    this.board[7][0] = WHITE | PAWN;
-    this.board[3][2] = BLACK | KING;
-    this.board[0][0] = WHITE | BISHOP;
-    this.board[1][1] = BLACK | PAWN;
-  }
-}
+  /**
+   *
+   * @param { string } fen
+   */
+  loadFromFEN(fen) {
+    let row = 0;
+    let col = 0;
+    for (let i = 0; i < fen.length; i++) {
+      let char = fen[i];
 
-/**
- * Returns true if the given position is invalid
- * @param { Pos } pos
- * @returns { boolean }
- */
-export function isInvalidPos(pos) {
-  if (pos.row < 0 || pos.col < 0) {
-    return true;
-  }
-  if (pos.row >= 8 || pos.col >= 8) {
-    return true;
-  }
-  return false;
-}
-
-/**
- * Returns the positions that the piece at the given pos can move to.
- * Throws MissingPieceError if there is not piece at the given pos.
- * @param { Pos } pos
- * @param { number[][] } board
- * @returns { Pos[] }
- */
-export function getMoves(pos, board) {
-  let piece = board[pos.row][pos.col];
-
-  if (piece == 0) {
-    throw new MissingPieceError(
-      "The pos: " + pos + " has no piece to get moves for."
-    );
-  }
-
-  let moves = [];
-
-  switch (getType(piece)) {
-    case PAWN:
-      let direction = 1;
-      if (isWhite(piece)) {
-        direction = -1;
+      if (char === "/") {
+        row++;
+        col = 0;
+        continue;
       }
 
-      // front move
-      moves.push({ row: pos.row + direction, col: pos.col });
+      const skips = parseInt(char);
+      if (!isNaN(skips)) {
+        col += skips;
+        continue;
+      }
+      let color = BLACK;
+      if (char === char.toUpperCase()) {
+        color = WHITE;
+      }
 
-      // side moves
-      let attacks = [
-        { row: pos.row + direction, col: pos.col - 1 },
-        { row: pos.row + direction, col: pos.col + 1 },
-      ];
+      let type = 0;
+      switch (char.toLowerCase()) {
+        case "p":
+          type = PAWN;
+          break;
+        case "b":
+          type = BISHOP;
+          break;
+        case "n":
+          type = KNIGHT;
+          break;
+        case "r":
+          type = ROOK;
+          break;
+        case "q":
+          type = QUEEN;
+          break;
+        case "k":
+          type = KING;
+          break;
+      }
+      if (type === 0) {
+        throw new FENProcessingError("FEN character is incorrect: " + char);
+      }
+      this.board[row][col] = color | type;
+      col++;
+    }
+  }
 
-      attacks.forEach((pos, _) => {
-        if (isInvalidPos(pos)) return;
-        const attackPiece = board[pos.row][pos.col];
-        if (isPiece(attackPiece) && !isSameColor(attackPiece, piece)) {
-          moves.push(pos);
-        }
-      });
+  /**
+   * Returns true if a piece is being held from the board.
+   * @returns { boolean }
+   */
+  isHoldingPiece() {
+    return this.heldSlot.piece != 0;
+  }
 
-      break;
+  /**
+   * Drops the held piece at the given position if it is legal
+   * otherwise, returns the held piece to its original square
+   * throws PieceMovementError if !isHoldingPiece().
+   * @param { Pos } pos
+   */
+  dropPiece(pos) {
+    if (!this.isHoldingPiece) {
+      throw new PieceMovementError("Cannot drop a piece without holding one.");
+    }
 
-    case KING:
-      let rowColShift = [0, -1, 1];
-      let newMoves = moves.concat(
-        rowColShift
-          .map((shift) =>
-            rowColShift.map((innerShift) => {
-              return { row: pos.row + shift, col: pos.col + innerShift };
-            })
-          )
-          .reduce((ar1, ar2) => ar1.concat(ar2))
+    // does the possible moves contain the position?
+    const hasPossibleMove = this.possibleMoves.filter(
+      (move) => move.row === pos.row && move.col === pos.col
+    );
+
+    if (isInvalidPos(pos) || hasPossibleMove.length == 0) {
+      // return piece to orginal square
+      this.board[this.heldSlot.homePos.row][this.heldSlot.homePos.col] =
+        this.heldSlot.piece;
+      this.heldSlot = { piece: 0, homePos: null, hoverPoint: null };
+      return;
+    }
+
+    // move piece to valid move
+    this.board[pos.row][pos.col] = this.heldSlot.piece;
+    this.heldSlot = { piece: 0, homePos: null, hoverPoint: null };
+
+    this.possibleMoves = [];
+  }
+
+  /**
+   * Returns true if a piece can be picked up from the give pos.
+   * @param { Pos } pos
+   * @returns { boolean }
+   */
+  canPickupPiece(pos) {
+    if (isInvalidPos(pos)) return false;
+
+    const piece = this.board[pos.row][pos.col];
+
+    if (!isPiece(piece)) return false;
+
+    return true;
+  }
+
+  /**
+   * Pickup the piece at the given pos
+   * throws PieceMovementError if !canPickup(pos).
+   * @param { Pos } pos
+   */
+  pickupPiece(pos) {
+    if (!this.canPickupPiece(pos)) {
+      throw new PieceMovementError("Cannot pickup the piece at " + pos);
+    }
+    const piece = this.board[pos.row][pos.col];
+    this.heldSlot.piece = piece;
+    this.board[pos.row][pos.col] = 0;
+    this.heldSlot.homePos = pos;
+  }
+
+  /**
+   * Sets the hover point of the held piece
+   * throws PieceMovementError if !isHoldingPiece().
+   * @param { Point } point
+   */
+  hoverHoldingPiece(point) {
+    if (!this.isHoldingPiece()) {
+      throw new PieceMovementError(
+        "Cannot hover when their is not a held piece."
       );
-      newMoves.forEach((pos, _) => {
-        if (isInvalidPos(pos)) {
-          return;
-        }
-        let attackPiece = board[pos.row][pos.col];
-        if (isPiece(attackPiece) && isSameColor(piece, attackPiece)) {
-          return;
-        }
-        moves.push(pos);
-      });
-
-      break;
-
-    case BISHOP:
-      moves = moves.concat(getDiagonalMoves(pos, board));
-      break;
-
-    case ROOK:
-      moves = moves.concat(getStraightMoves(pos, board));
-      break;
-
-    case QUEEN:
-      moves = moves
-        .concat(getStraightMoves(pos, board))
-        .concat(getDiagonalMoves(pos, board));
-      break;
+    }
+    this.heldSlot.hoverPoint = point;
   }
-  return moves;
-}
 
-/**
- * Get Diagonal moves for the piece at the given position.
- * @param { Pos } pos
- * @param { number[][] } board
- * @returns { Pos[] }
- */
-function getDiagonalMoves(pos, board) {
-  return getSlidingMovesInDirection(pos, board, { row: 1, col: 1 })
-    .concat(getSlidingMovesInDirection(pos, board, { row: -1, col: 1 }))
-    .concat(getSlidingMovesInDirection(pos, board, { row: 1, col: -1 }))
-    .concat(getSlidingMovesInDirection(pos, board, { row: -1, col: -1 }));
-}
-
-/**
- * Get Straight moves for the piece at the given position.
- * @param { Pos } pos
- * @param { number[][] } board
- * @returns { Pos[] }
- */
-function getStraightMoves(pos, board) {
-  return getSlidingMovesInDirection(pos, board, { row: 0, col: 1 })
-    .concat(getSlidingMovesInDirection(pos, board, { row: 1, col: 0 }))
-    .concat(getSlidingMovesInDirection(pos, board, { row: -1, col: 0 }))
-    .concat(getSlidingMovesInDirection(pos, board, { row: 0, col: -1 }));
-}
-
-/**
- * Get Diagonal moves for the piece at the given position in given direction.
- * @param { Pos } pos
- * @param { number[][] } board
- * @param { Pos } direction
- * @returns { Pos[] }
- */
-function getSlidingMovesInDirection(pos, board, direction) {
-  let piece = board[pos.row][pos.col];
-  let moves = [];
-  let nextPos = { row: pos.row + direction.row, col: pos.col + direction.col };
-  while (true) {
-    if (isInvalidPos(nextPos)) {
-      break;
-    }
-
-    let nextPiece = board[nextPos.row][nextPos.col];
-
-    if (isPiece(nextPiece) && isSameColor(nextPiece, piece)) {
-      break;
-    }
-
-    moves.push(nextPos);
-
-    // pieces are different vision is blocked
-    if (isPiece(nextPiece)) {
-      break;
-    }
-
-    nextPos = {
-      row: nextPos.row + direction.row,
-      col: nextPos.col + direction.col,
-    };
+  /**
+   * Sets the players possible moves to the ones from the given pos.
+   * @param { Pos } pos
+   */
+  setPossibleMoves(pos) {
+    this.possibleMoves = getMoves(pos, this.board);
   }
-  return moves;
+
+  /**
+   * Clears the players possible moves.
+   */
+  clearPossibleMoves() {
+    this.possibleMoves = [];
+  }
 }
