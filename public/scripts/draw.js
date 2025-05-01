@@ -3,12 +3,16 @@ import {
   CHESS_BOARD_ID,
   DARK_SQUARE,
   DRAW_DELAY,
+  HIGHLIGHT_SQUARE,
   LIGHT_SQUARE,
+  SPECIAL_HIGHLIGHT_SQUARE,
 } from "./constants.js";
 
-import { BLACK } from "./chess.js";
+import { Game } from "./chess/game.js";
 
-const pieceNames = ["pawn", "knight", "bishop", "rook", "queen", "king"];
+import { BLACK } from "./chess/piece.js";
+
+const pieceNames = ["pawn", "bishop", "knight", "rook", "queen", "king"];
 
 let pieceImages = {};
 
@@ -96,20 +100,17 @@ function drawBoardTiles() {
 
 /**
  * Draws the chess board pieces.
- * @param { number[][] }
+ * @param { Game } game
  */
-function drawBoardPieces(board) {
+function drawBoardPieces(game) {
+  let board = game.board;
   const squareWidth = getSquareWidth();
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
       if (board[row][col] === 0) {
         continue;
       }
-      drawPieceImage(
-        board[row][col],
-        col * squareWidth,
-        row * squareWidth
-      );
+      drawPieceImage(board[row][col], col * squareWidth, row * squareWidth);
     }
   }
 }
@@ -138,30 +139,67 @@ function resize() {
 }
 
 /**
+ * Draws the highlighted squares to the canvas.
+ * @param { Pos[] } squares
+ */
+function drawHighlightedSquares(squares) {
+  const squareWidth = getSquareWidth();
+  squares.forEach((pos, index) => {
+    drawRect(
+      HIGHLIGHT_SQUARE,
+      pos.col * squareWidth,
+      pos.row * squareWidth,
+      squareWidth,
+      squareWidth
+    );
+  });
+}
+
+/**
  * Starts a process of updating the drawings.
  * @param { Game } game
  */
 export function startUpdatingDrawing(game) {
   setInterval(() => {
     drawBoardTiles();
-    drawBoardPieces(game.board);
-    drawHeldPiece(game);
+    drawHighlightedSquares(game.highlightedSquares);
+    drawSpecialHighlightedSquare(game.heldPieceSlot);
+    drawBoardPieces(game);
+    drawHeldPiece(game.heldPieceSlot);
   }, DRAW_DELAY);
 }
 
 /**
  * Draws the held piece.
- * @param { Game } game
+ * @param { heldPieceSlot } slot
  */
-function drawHeldPiece(game) {
-  if (game.heldPiece == 0) {
+function drawSpecialHighlightedSquare(slot) {
+  if (slot.piece == 0) {
+    return;
+  }
+
+  drawRect(
+    SPECIAL_HIGHLIGHT_SQUARE,
+    slot.homePos.col * getSquareWidth(),
+    slot.homePos.row * getSquareWidth(),
+    getSquareWidth(),
+    getSquareWidth()
+  );
+}
+
+/**
+ * Draws the held piece.
+ * @param { heldPieceSlot } slot
+ */
+function drawHeldPiece(slot) {
+  if (slot.piece == 0) {
     return;
   }
   const halfPieceWidth = Math.floor(getSquareWidth() / 2);
   drawPieceImage(
-    game.heldPiece,
-    game.heldPiecePoint.x - halfPieceWidth,
-    game.heldPiecePoint.y - halfPieceWidth
+    slot.piece,
+    slot.hoverPoint.x - halfPieceWidth,
+    slot.hoverPoint.y - halfPieceWidth
   );
 }
 

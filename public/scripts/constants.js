@@ -4,11 +4,11 @@ export const GREEN = "rgb(0 255 0)";
 
 export const DARK_SQUARE = "rgb(108 148 137)";
 export const LIGHT_SQUARE = "rgb(136 174 163)";
-export const CHESS_BOARD_ID = "chess-board";
 
+export const HIGHLIGHT_SQUARE = "rgba(237, 226, 18, 0.25)";
+export const SPECIAL_HIGHLIGHT_SQUARE = "rgba(237, 18, 208, 0.25)";
+
+export const CHESS_BOARD_ID = "chess-board";
 export const CANVAS_MARGIN = 20;
 
 export const DRAW_DELAY = 60 / 1000;
-
-
-
