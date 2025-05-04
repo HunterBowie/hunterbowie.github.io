@@ -1,16 +1,13 @@
-import { FENProcessingError, PieceMovementError } from "../errors.js";
-import { getMoves, isInvalidPos } from "./move.js";
+import { PieceMovementError } from "../errors.js";
 import {
-  BISHOP,
-  BLACK,
-  KING,
-  KNIGHT,
-  PAWN,
-  QUEEN,
-  ROOK,
-  WHITE,
-  isPiece,
-} from "./piece.js";
+  changeToMove,
+  createBoard,
+  getPiece,
+  isInvalidPos,
+  setPiece,
+} from "./board.js";
+import { getMovesForPiece } from "./moves.js";
+import { getColor, isPiece } from "./piece.js";
 
 const GameState = {
   WAITING_FOR_PLAYER: 1,
@@ -22,68 +19,10 @@ const GameState = {
  */
 export class Game {
   constructor() {
-    this.board = Array.from({ length: 8 }, () => new Array(8).fill(0));
+    this.board = createBoard();
     this.heldSlot = { piece: 0, homePos: null, hoverPoint: null };
     this.possibleMoves = [];
-    this.turn = "white";
-    this.state = GameState.WAITING_FOR_PLAYER;
-    this.loadFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
     // more to come
-  }
-
-  /**
-   *
-   * @param { string } fen
-   */
-  loadFromFEN(fen) {
-    let row = 0;
-    let col = 0;
-    for (let i = 0; i < fen.length; i++) {
-      let char = fen[i];
-
-      if (char === "/") {
-        row++;
-        col = 0;
-        continue;
-      }
-
-      const skips = parseInt(char);
-      if (!isNaN(skips)) {
-        col += skips;
-        continue;
-      }
-      let color = BLACK;
-      if (char === char.toUpperCase()) {
-        color = WHITE;
-      }
-
-      let type = 0;
-      switch (char.toLowerCase()) {
-        case "p":
-          type = PAWN;
-          break;
-        case "b":
-          type = BISHOP;
-          break;
-        case "n":
-          type = KNIGHT;
-          break;
-        case "r":
-          type = ROOK;
-          break;
-        case "q":
-          type = QUEEN;
-          break;
-        case "k":
-          type = KING;
-          break;
-      }
-      if (type === 0) {
-        throw new FENProcessingError("FEN character is incorrect: " + char);
-      }
-      this.board[row][col] = color | type;
-      col++;
-    }
   }
 
   /**
@@ -112,19 +51,18 @@ export class Game {
 
     if (isInvalidPos(pos) || hasPossibleMove.length == 0) {
       // return piece to orginal square
-      this.board[this.heldSlot.homePos.row][this.heldSlot.homePos.col] =
-        this.heldSlot.piece;
+      setPiece(this.heldSlot.homePos, this.heldSlot.piece, this.board);
       this.heldSlot = { piece: 0, homePos: null, hoverPoint: null };
       return;
     }
 
     // move piece to valid move
-    this.board[pos.row][pos.col] = this.heldSlot.piece;
+    setPiece(pos, this.heldSlot.piece, this.board);
     this.heldSlot = { piece: 0, homePos: null, hoverPoint: null };
 
     this.possibleMoves = [];
+    changeToMove(this.board);
   }
-
   /**
    * Returns true if a piece can be picked up from the give pos.
    * @param { Pos } pos
@@ -133,9 +71,11 @@ export class Game {
   canPickupPiece(pos) {
     if (isInvalidPos(pos)) return false;
 
-    const piece = this.board[pos.row][pos.col];
+    const piece = getPiece(pos, this.board);
 
     if (!isPiece(piece)) return false;
+
+    if (getColor(piece) != this.board.toMove) return false;
 
     return true;
   }
@@ -149,9 +89,9 @@ export class Game {
     if (!this.canPickupPiece(pos)) {
       throw new PieceMovementError("Cannot pickup the piece at " + pos);
     }
-    const piece = this.board[pos.row][pos.col];
+    const piece = getPiece(pos, this.board);
     this.heldSlot.piece = piece;
-    this.board[pos.row][pos.col] = 0;
+    setPiece(pos, 0, this.board);
     this.heldSlot.homePos = pos;
   }
 
@@ -174,7 +114,7 @@ export class Game {
    * @param { Pos } pos
    */
   setPossibleMoves(pos) {
-    this.possibleMoves = getMoves(pos, this.board);
+    this.possibleMoves = getMovesForPiece(pos, this.board);
   }
 
   /**

@@ -8,6 +8,7 @@ import {
   SPECIAL_HIGHLIGHT_SQUARE,
 } from "./constants.js";
 
+import { getPiece } from "./chess/board.js";
 import { Game } from "./chess/game.js";
 
 import { BLACK } from "./chess/piece.js";
@@ -103,14 +104,17 @@ function drawBoardTiles() {
  * @param { Game } game
  */
 function drawBoardPieces(game) {
-  let board = game.board;
   const squareWidth = getSquareWidth();
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
-      if (board[row][col] === 0) {
+      if (getPiece({ row: row, col: col }, game.board) == 0) {
         continue;
       }
-      drawPieceImage(board[row][col], col * squareWidth, row * squareWidth);
+      drawPieceImage(
+        getPiece({ row: row, col: col }, game.board),
+        col * squareWidth,
+        row * squareWidth
+      );
     }
   }
 }

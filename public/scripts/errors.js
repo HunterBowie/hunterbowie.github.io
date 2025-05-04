@@ -18,3 +18,10 @@ export class FENProcessingError extends Error {
     this.name = "FENProcessingError";
   }
 }
+
+export class IllegalBoardError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "IllegalBoardError";
+  }
+}

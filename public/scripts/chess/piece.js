@@ -8,6 +8,12 @@ export const KING = 6; // -110
 export const WHITE = 0; // 0---
 export const BLACK = 8; // 1---
 
+
+/**
+ * @typedef { 0b0000 | 0b1000 } Color
+ */
+
+
 /**
  * Returns true if the given piece is white.
  * @param { number } piece

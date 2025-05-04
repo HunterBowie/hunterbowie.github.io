@@ -1,3 +1,4 @@
+import { Game } from "./chess/game.js";
 import { getCanvas, getSquareWidth } from "./draw.js";
 
 /**
@@ -33,22 +34,6 @@ export function startUpdatingInput(game) {
   let heldSlot = game.heldSlot;
 
   window.addEventListener("mousedown", (event) => {
-    // game.setPossibleMoves()
-    // game.clearPossibleMoves();
-    // game.canPickup(pos);
-    // game.pickupPiece(pos);
-    // game.possibleMoves = [];
-    // if (isInvalidPos(pos)) {
-    //   return;
-    // }
-    // const piece = board[pos.row][pos.col];
-    // if (piece == 0) {
-    //   return;
-    // }
-    // game.possibleMoves = getMoves(pos, board);
-    // heldSlot.piece = piece;
-    // board[pos.row][pos.col] = 0;
-    // heldSlot.homePos = pos;
     const pos = getMousePos(event);
 
     game.clearPossibleMoves();
@@ -58,8 +43,6 @@ export function startUpdatingInput(game) {
       game.pickupPiece(pos);
       game.hoverHoldingPiece(getMousePoint(event));
     }
-
-    // heldSlot.hoverPoint = getMousePoint(event);
   });
 
   window.addEventListener("mouseup", (event) => {
@@ -69,33 +52,9 @@ export function startUpdatingInput(game) {
     }
     // TODO: REMOVE
     heldSlot = game.heldSlot;
-
-    // if (heldSlot.piece === 0) return;
-
-    // // now must be holding a piece
-
-    // const hasPossibleMove = game.possibleMoves.filter(
-    //   (move) => move.row === pos.row && move.col === pos.col
-    // );
-    // if (isInvalidPos(pos) || hasPossibleMove.length == 0) {
-    //   // return piece to orginal square
-    //   board[heldSlot.homePos.row][heldSlot.homePos.col] = heldSlot.piece;
-    //   game.heldSlot = { piece: 0, homePos: null, hoverPoint: null };
-    //   heldSlot = game.heldSlot;
-    //   return;
-    // }
-
-    // // move piece to valid move
-    // board[pos.row][pos.col] = heldSlot.piece;
-    // game.heldSlot = { piece: 0, homePos: null, hoverPoint: null };
-    // heldSlot = game.heldSlot;
-
-    // game.possibleMoves = [];
   });
 
   window.addEventListener("mousemove", (event) => {
-    // game.isHoldingPiece();
-    // game.hoverHoldingPiece(getMousePoint(event));
     if (heldSlot.piece != 0) {
       heldSlot.hoverPoint = getMousePoint(event);
     }
