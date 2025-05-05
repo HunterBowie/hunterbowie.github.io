@@ -7,7 +7,6 @@ import { startUpdatingInput } from "./input.js";
  */
 function main() {
   initDraw().then(startGame);
-  // .catch((err) => console.error("Images failed to load with error: " + err));
 }
 
 /**

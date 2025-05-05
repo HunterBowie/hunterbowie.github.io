@@ -1,17 +1,6 @@
-export class MissingPieceError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = "MissingPieceError";
-  }
-}
+// These are all fatal errors
 
-export class PieceMovementError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = "PieceMovementError";
-  }
-}
-
+// when invalid FEN is being processed
 export class FENProcessingError extends Error {
   constructor(message) {
     super(message);
@@ -19,9 +8,26 @@ export class FENProcessingError extends Error {
   }
 }
 
-export class IllegalBoardError extends Error {
+// when a piece does not exist at a position when it should
+export class MissingPieceError extends Error {
   constructor(message) {
     super(message);
-    this.name = "IllegalBoardError";
+    this.name = "MissingPieceError";
+  }
+}
+
+// when the board state is invalid in some way
+export class BoardStateError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "BoardStateError";
+  }
+}
+
+// when the game state is invalid in some way
+export class GameStateError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "GameStateError";
   }
 }

@@ -1,27 +1,28 @@
 import {
-    copyBoard,
-    getPiece,
-    isInvalidPos,
-    isKingInCheck,
-    setPiece,
+  copyBoard,
+  getPiece,
+  isInvalidPos,
+  isKingInCheck,
+  setPiece,
 } from "./board.js";
 import {
-    BISHOP,
-    getType,
-    isPiece,
-    isSameColor,
-    isWhite,
-    KING,
-    KNIGHT,
-    PAWN,
-    QUEEN,
-    ROOK,
+  BISHOP,
+  getType,
+  isPiece,
+  isSameColor,
+  isWhite,
+  KING,
+  KNIGHT,
+  PAWN,
+  QUEEN,
+  ROOK,
 } from "./piece.js";
 
 /**
  * MOVES are just positions that a piece could go to from its current position.
  * VALID MOVES are moves that are on the board.
  * LEGAL MOVES are moves that don't endanger the king (or if the king is already in check and the move does not save the king).
+ * RAW MOVES are moves that are playable moves that might or might not be ILLEGAL
  */
 
 /**
@@ -30,15 +31,20 @@ import {
  * @property { number } col - the col of the position on the board
  */
 
+/**
+ * @typedef { Object } Move
+ * @property { Pos } start
+ * @property { Pos } end
+ */
 
 /**
- * Returns the positions that the piece at the given pos can move to.
+ * Returns the position that the piece at the given pos can move to (including illegal moves).
  * Throws MissingPieceError if there is not piece at the given pos.
  * @param { Pos } pos
- * @param { number[][] } board
- * @returns { Pos[] }
+ * @param { Board } board
+ * @returns { Move[] }
  */
-export function getMovesForPiece(pos, board) {
+export function getRawMovesForPiece(pos, board) {
   let piece = getPiece(pos, board);
 
   if (piece == 0) {
@@ -57,14 +63,20 @@ export function getMovesForPiece(pos, board) {
       }
       // double push
       if (!hasPawnMoved(pos, piece)) {
-        let doublePush = { row: pos.row + 2 * direction, col: pos.col };
+        let doublePush = {
+          start: pos,
+          end: { row: pos.row + 2 * direction, col: pos.col },
+        };
         if (isValidAndUnoccupied(doublePush, board)) {
           moves.push(doublePush);
         }
       }
 
       // single push
-      let singlePush = { row: pos.row + direction, col: pos.col };
+      let singlePush = {
+        start: pos,
+        end: { row: pos.row + direction, col: pos.col },
+      };
       if (isValidAndUnoccupied(singlePush, board)) {
         moves.push(singlePush);
       }
@@ -75,9 +87,10 @@ export function getMovesForPiece(pos, board) {
         { row: pos.row + direction, col: pos.col + 1 },
       ];
 
-      attacks.forEach((pos, _) => {
-        if (isValidAndOccupiedByEnemy(pos, board)) {
-          moves.push(pos);
+      attacks.forEach((endPos, _) => {
+        let move = { start: pos, end: endPos };
+        if (isValidAndOccupiedByEnemy(move, board)) {
+          moves.push(move);
         }
       });
 
@@ -96,9 +109,10 @@ export function getMovesForPiece(pos, board) {
           .reduce((ar1, ar2) => ar1.concat(ar2))
       );
 
-      kingMoves.forEach((pos, _) => {
-        if (isValidAndNotBlocked(pos, board)) {
-          moves.push(pos);
+      kingMoves.forEach((endPos, _) => {
+        let move = { start: pos, end: endPos };
+        if (isValidAndNotBlocked(move, board)) {
+          moves.push(move);
         }
       });
 
@@ -129,19 +143,39 @@ export function getMovesForPiece(pos, board) {
         { row: pos.row + 2, col: pos.col + 1 },
         { row: pos.row - 2, col: pos.col + 1 },
       ];
-      knightMoves.forEach((pos, _) => {
-        if (isValidAndNotBlocked(pos, board)) {
-          moves.push(pos);
+      knightMoves.forEach((endPos, _) => {
+        let move = { start: pos, end: endPos };
+        if (isValidAndNotBlocked(move, board)) {
+          moves.push(move);
         }
       });
       break;
   }
 
+  return moves;
+}
+
+/**
+ * Returns the positions that the piece at the given pos can move to.
+ * Throws MissingPieceError if there is not piece at the given pos.
+ * @param { Pos } pos
+ * @param { number[][] } board
+ * @returns { Move[] }
+ */
+export function getMovesForPiece(pos, board) {
+  let piece = getPiece(pos, board);
+
+  if (piece == 0) {
+    throw new MissingPieceError(
+      "The pos: " + pos + " has no piece to get moves for."
+    );
+  }
+
   let legalMoves = [];
 
-  moves.forEach((endPos, _) => {
-    if (isLegalMove(pos, endPos, board)) {
-      legalMoves.push(endPos);
+  getRawMovesForPiece(pos, board).forEach((move, _) => {
+    if (isLegalMove(move, board)) {
+      legalMoves.push(move);
     }
   });
   return legalMoves;
@@ -149,15 +183,15 @@ export function getMovesForPiece(pos, board) {
 
 /**
  * Returns true if the move is legal and is not occupied.
- * @param { Pos } pos
+ * @param { Move } move
  * @param { number[][] } board
  * @returns { boolean }
  */
-function isValidAndUnoccupied(pos, board) {
-  if (isInvalidPos(pos)) {
+function isValidAndUnoccupied(move, board) {
+  if (isInvalidPos(move.end)) {
     return false;
   }
-  let piece = getPiece(pos, board);
+  let piece = getPiece(move.end, board);
   if (piece != 0) {
     return false;
   }
@@ -166,51 +200,53 @@ function isValidAndUnoccupied(pos, board) {
 
 /**
  * Returns true if the move is legal and occupied by an enemy.
- * @param { Pos } pos
+ * @param { Move } move
  * @param { number[][] } board
  * @returns { boolean }
  */
-function isValidAndOccupiedByEnemy(pos, board) {
-  if (isInvalidPos(pos)) {
+function isValidAndOccupiedByEnemy(move, board) {
+  if (isInvalidPos(move.end)) {
     return false;
   }
-  let piece = getPiece(pos, board);
-  if (piece != 0) {
-    return !isSameColor(piece, board.toMove);
+  let startPiece = getPiece(move.start, board);
+  let endPiece = getPiece(move.end, board);
+  if (endPiece != 0) {
+    return !isSameColor(startPiece, endPiece);
   }
   return false;
 }
 
 /**
  * Returns true if the move is legal and not blocked by a friend.
- * @param { Pos } pos
+ * @param { Move } move
  * @param { number[][] } board
  * @returns { boolean }
  */
-function isValidAndNotBlocked(pos, board) {
-  if (isInvalidPos(pos)) {
+function isValidAndNotBlocked(move, board) {
+  if (isInvalidPos(move.end)) {
     return false;
   }
-  let piece = getPiece(pos, board);
-  if (piece != 0) {
-    return !isSameColor(piece, board.toMove);
+  let startPiece = getPiece(move.start, board);
+  let endPiece = getPiece(move.end, board);
+  if (endPiece != 0) {
+    return !isSameColor(startPiece, endPiece);
   }
   return true;
 }
 
 /**
  * Returns true if the move from the start to end position is legal.
- * @param { Pos } startPos
- * @param { Pos } endPos
+ * @param { Move } move
  * @param { Board } board
  * @returns { boolean }
  */
-function isLegalMove(startPos, endPos, board) {
+function isLegalMove(move, board) {
   let newBoard = copyBoard(board);
-  let piece = getPiece(startPos, board);
-  setPiece(startPos, 0, newBoard);
-  setPiece(endPos, piece, newBoard);
+  let startPiece = getPiece(move.start, board);
+  setPiece(move.start, 0, newBoard);
+  setPiece(move.end, startPiece, newBoard);
   if (isKingInCheck(newBoard)) {
+    console.log("Danger");
     return false;
   }
   return true;
@@ -283,7 +319,7 @@ function getSlidingMovesInDirection(pos, board, direction) {
       break;
     }
 
-    moves.push(nextPos);
+    moves.push({ start: pos, end: nextPos });
 
     // pieces are different vision is blocked
     if (isPiece(nextPiece)) {

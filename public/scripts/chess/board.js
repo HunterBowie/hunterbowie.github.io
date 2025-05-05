@@ -1,4 +1,4 @@
-import { FENProcessingError, IllegalBoardError } from "../errors.js";
+import { BoardStateError, FENProcessingError } from "../errors.js";
 import {
   BISHOP,
   BLACK,
@@ -8,9 +8,13 @@ import {
   QUEEN,
   ROOK,
   WHITE,
+  getColor,
 } from "./piece.js";
 
+import { getRawMovesForPiece } from "./moves.js";
+
 /**
+ * The entire state of a chess game.
  * @typedef { Object } Board
  * @property { number[] } mailbox - repersentation of the chess board using a single list
  * @property { Color } toMove - repersents the color to move
@@ -128,36 +132,53 @@ export function isInvalidPos(pos) {
 }
 
 /**
+ * Returns the position of the king of the current toMove color.
+ * @param { Board } board
+ * @returns { Pos }
+ */
+function findKing(board) {
+  for (let row = 0; row <= 8; row++) {
+    for (let col = 0; col <= 8; col++) {
+      const pos = { row: row, col: col };
+      const piece = getPiece(pos, board);
+      if (piece == (board.toMove | KING)) {
+        return pos;
+      }
+    }
+  }
+
+  throw new BoardStateError("There is no King on the board");
+}
+
+/**
  * Returns true if the king is in check (of the current color).
  * @param { Board } board
  * @returns { boolean }
  */
 export function isKingInCheck(board) {
-  return false;
-  // REALLY slow
-  let kingsPosition = null;
-  for (let row = 0; row <= 8; row++) {
-    for (let col = 0; col <= 8; col++) {
-      let pos = { row: row, col: col };
-      if ((getPiece(pos, board) == board.toMove) | KING) {
-        kingsPosition = pos;
-      }
-    }
-  }
-  if (kingsPosition == null) {
-    throw new IllegalBoardError("There is no King on the board");
-  }
+  const kingsPos = findKing(board);
+
+  console.log(
+    "Checking... Our king is at " + kingsPos.row + ", " + kingsPos.col
+  );
 
   for (let row = 0; row <= 8; row++) {
     for (let col = 0; col <= 8; col++) {
-      let pos = { row: row, col: col };
-      let piece = getPiece(pos, board);
+      const pos = { row: row, col: col };
+      const piece = getPiece(pos, board);
       if (piece != 0 && getColor(piece) != board.toMove) {
-        // TODO: figure out how to get the moves of the opponent raw instead of going into endless cycle
-        // let moves = getRawMovesForPiece(pos, board);
+        const moves = getRawMovesForPiece(pos, board);
+        for (let index = 0; index < moves.length; index++) {
+          const move = moves[index];
+          if (move.end.row == kingsPos.row && move.end.col == kingsPos.col) {
+            console.log("King Target...");
+            return true;
+          }
+        }
       }
     }
   }
+  return false;
 }
 
 /**

@@ -1,4 +1,4 @@
-import { PieceMovementError } from "../errors.js";
+import { GameStateError } from "../errors.js";
 import {
   changeToMove,
   createBoard,
@@ -8,11 +8,6 @@ import {
 } from "./board.js";
 import { getMovesForPiece } from "./moves.js";
 import { getColor, isPiece } from "./piece.js";
-
-const GameState = {
-  WAITING_FOR_PLAYER: 1,
-  WAITING_FOR_BOT: 2,
-};
 
 /**
  * Repersents the chess game.
@@ -36,17 +31,16 @@ export class Game {
   /**
    * Drops the held piece at the given position if it is legal
    * otherwise, returns the held piece to its original square
-   * throws PieceMovementError if !isHoldingPiece().
    * @param { Pos } pos
    */
   dropPiece(pos) {
     if (!this.isHoldingPiece) {
-      throw new PieceMovementError("Cannot drop a piece without holding one.");
+      throw new GameStateError("Cannot drop a piece without holding one.");
     }
 
     // does the possible moves contain the position?
     const hasPossibleMove = this.possibleMoves.filter(
-      (move) => move.row === pos.row && move.col === pos.col
+      (move) => move.end.row === pos.row && move.end.col === pos.col
     );
 
     if (isInvalidPos(pos) || hasPossibleMove.length == 0) {
@@ -82,12 +76,11 @@ export class Game {
 
   /**
    * Pickup the piece at the given pos
-   * throws PieceMovementError if !canPickup(pos).
    * @param { Pos } pos
    */
   pickupPiece(pos) {
     if (!this.canPickupPiece(pos)) {
-      throw new PieceMovementError("Cannot pickup the piece at " + pos);
+      throw new GameStateError("Cannot pickup the piece at " + pos);
     }
     const piece = getPiece(pos, this.board);
     this.heldSlot.piece = piece;
@@ -102,9 +95,7 @@ export class Game {
    */
   hoverHoldingPiece(point) {
     if (!this.isHoldingPiece()) {
-      throw new PieceMovementError(
-        "Cannot hover when their is not a held piece."
-      );
+      throw new GameStateError("Cannot hover when their is not a held piece.");
     }
     this.heldSlot.hoverPoint = point;
   }
@@ -115,6 +106,7 @@ export class Game {
    */
   setPossibleMoves(pos) {
     this.possibleMoves = getMovesForPiece(pos, this.board);
+    console.log(this.possibleMoves);
   }
 
   /**

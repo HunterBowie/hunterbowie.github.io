@@ -148,15 +148,15 @@ function resize() {
 
 /**
  * Draws the highlighted squares to the canvas.
- * @param { Pos[] } squares
+ * @param { Move[] } moves
  */
-function drawPossibleMoves(squares) {
+function drawPossibleMoves(moves) {
   const squareWidth = getSquareWidth();
-  squares.forEach((pos, index) => {
+  moves.forEach((move, _) => {
     drawRect(
       HIGHLIGHT_SQUARE,
-      pos.col * squareWidth,
-      pos.row * squareWidth,
+      move.end.col * squareWidth,
+      move.end.row * squareWidth,
       squareWidth,
       squareWidth
     );
