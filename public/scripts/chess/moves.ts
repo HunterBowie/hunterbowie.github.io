@@ -1,22 +1,22 @@
 import {
-    Board,
-    copyBoard,
-    getPiece,
-    isInvalidPos,
-    isKingInCheck,
-    setPiece,
+  Board,
+  copyBoard,
+  getPiece,
+  isInvalidPos,
+  isKingInCheck,
+  setPiece,
 } from "./board.js";
 import {
-    BISHOP,
-    getType,
-    isPiece,
-    isSameColor,
-    isWhite,
-    KING,
-    KNIGHT,
-    PAWN,
-    QUEEN,
-    ROOK,
+  BISHOP,
+  getType,
+  isPiece,
+  isSameColor,
+  isWhite,
+  KING,
+  KNIGHT,
+  PAWN,
+  QUEEN,
+  ROOK,
 } from "./piece.js";
 
 import { MissingPieceError } from "../errors.js";
@@ -25,23 +25,23 @@ import { MissingPieceError } from "../errors.js";
  * MOVES are just positions that a piece could go to from its current position.
  * VALID MOVES are moves that are on the board.
  * LEGAL MOVES are moves that don't endanger the king (or if the king is already in check and the move does not save the king).
- * RAW MOVES are moves that are playable moves that might or might not be ILLEGAL
+ * RAW MOVES are moves that are playable moves that might or might not be ILLEGAL (they must be VALID)
  */
 
 /**
  * A position on a chess board.
  */
 export interface Pos {
-    row: number,
-    col: number
+  row: number;
+  col: number;
 }
 
 /**
  * A move on a chess board.
  */
 export interface Move {
-    start: Pos,
-    end: Pos
+  start: Pos;
+  end: Pos;
 }
 
 /**
@@ -65,17 +65,6 @@ export function getRawMovesForPiece(pos: Pos, board: Board): Move[] {
       if (isWhite(piece)) {
         direction = -1;
       }
-      // double push
-      if (!hasPawnMoved(pos, piece)) {
-        let doublePush = {
-          start: pos,
-          end: { row: pos.row + 2 * direction, col: pos.col },
-        };
-        if (isValidAndUnoccupied(doublePush, board)) {
-          moves.push(doublePush);
-        }
-      }
-
       // single push
       let singlePush = {
         start: pos,
@@ -83,6 +72,17 @@ export function getRawMovesForPiece(pos: Pos, board: Board): Move[] {
       };
       if (isValidAndUnoccupied(singlePush, board)) {
         moves.push(singlePush);
+
+        // double push
+        if (!hasPawnMoved(pos, piece)) {
+          let doublePush = {
+            start: pos,
+            end: { row: pos.row + 2 * direction, col: pos.col },
+          };
+          if (isValidAndUnoccupied(doublePush, board)) {
+            moves.push(doublePush);
+          }
+        }
       }
 
       // side moves
@@ -102,15 +102,15 @@ export function getRawMovesForPiece(pos: Pos, board: Board): Move[] {
 
     case KING:
       const kingMoves = [
-        {row: pos.row + 1, col: pos.col},
-        {row: pos.row + 1, col: pos.col + 1},
-        {row: pos.row + 1, col: pos.col - 1},
-        {row: pos.row, col: pos.col + 1},
-        {row: pos.row, col: pos.col - 1},
-        {row: pos.row - 1, col: pos.col},
-        {row: pos.row - 1, col: pos.col + 1},
-        {row: pos.row - 1, col: pos.col - 1},
-      ]
+        { row: pos.row + 1, col: pos.col },
+        { row: pos.row + 1, col: pos.col + 1 },
+        { row: pos.row + 1, col: pos.col - 1 },
+        { row: pos.row, col: pos.col + 1 },
+        { row: pos.row, col: pos.col - 1 },
+        { row: pos.row - 1, col: pos.col },
+        { row: pos.row - 1, col: pos.col + 1 },
+        { row: pos.row - 1, col: pos.col - 1 },
+      ];
 
       kingMoves.forEach((endPos, _) => {
         let move = { start: pos, end: endPos };

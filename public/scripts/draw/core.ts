@@ -1,0 +1,112 @@
+import { BLACK } from "../chess/piece.js";
+import { CANVAS_MARGIN, CHESS_BOARD_ID } from "../constants.js";
+
+const pieceNames = ["pawn", "bishop", "knight", "rook", "queen", "king"];
+
+let pieceImages = {};
+
+/**
+ * Initializes the context/canvas with the proper configs.
+ */
+export function initDraw(): Promise<unknown[]> {
+  // setup canvas resizing
+  resize();
+  window.addEventListener("resize", () => resize());
+
+  // load images
+  const whitePiecesNames = pieceNames.map((name) => "white-" + name);
+  const blackPiecesNames = pieceNames.map((name) => "black-" + name);
+  const allPiecesNames = whitePiecesNames.concat(blackPiecesNames);
+  const allPieces = allPiecesNames.map((name) => {
+    let image = new Image();
+    image.src = "assets/" + name + ".png";
+    return image;
+  });
+
+  allPieces.forEach((image, index) => {
+    if (index < allPieces.length / 2) {
+      pieceImages[index + 1] = image;
+    } else {
+      index -= allPieces.length / 2;
+      pieceImages[(index + 1) | BLACK] = image;
+    }
+  });
+
+  return Promise.all(
+    Array.from(allPieces).map(
+      (image) =>
+        new Promise((resolve) => image.addEventListener("load", resolve))
+    )
+  );
+}
+
+/**
+ * Gets the canvas that repersents the chess board.
+ */
+export function getCanvas(): HTMLCanvasElement {
+  return document.getElementById(CHESS_BOARD_ID) as HTMLCanvasElement;
+}
+
+/**
+ * Gets the context of the chess board canvas.
+ */
+export function getContext(): CanvasRenderingContext2D {
+  return getCanvas().getContext("2d") as CanvasRenderingContext2D;
+}
+
+/**
+ * Get the chess board tile width.
+ */
+export function getSquareWidth(): number {
+  return Number(getCanvas().style.width.slice(0, -2)) / 8;
+}
+
+/**
+ * Draws a rectangle filled with the given color to the context.
+ */
+export function drawRect(
+  color: string,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+) {
+  const ctx = getContext();
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, width, height);
+}
+
+/**
+ * Draws an image to the context (better for a single image).
+ */
+export function drawPieceImage(piece: number, x: number, y: number) {
+  const squareWidth = getSquareWidth();
+  getContext().drawImage(pieceImages[piece], x, y, squareWidth, squareWidth);
+}
+
+/**
+ * Resizes the canvas to fit the window size.
+ */
+function resize() {
+  const ctx = getContext();
+  const canvas = getCanvas();
+  const infoBar = document.getElementById("info-bar") as HTMLElement;
+
+  const size =
+    Math.min(window.innerWidth, window.innerHeight - 20) - CANVAS_MARGIN;
+
+  const dpr = window.devicePixelRatio || 1;
+
+  infoBar.style.width = `${size}px`;
+
+  // Set internal resolution
+  canvas.width = size * dpr;
+  canvas.height = size * dpr;
+
+  // Set CSS (display) size
+  canvas.style.width = `${size}px`;
+  canvas.style.height = `${size}px`;
+
+  // Scale context so all drawing uses CSS pixels
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}

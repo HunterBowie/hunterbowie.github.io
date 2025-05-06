@@ -1,90 +1,166 @@
 import { GameStateError } from "../errors.js";
 import {
-    Board,
+  Board,
   changeToMove,
-  createBoard,
+  createStartingBoard,
   getPiece,
   isInvalidPos,
   setPiece,
 } from "./board.js";
 import { getMovesForPiece, Move, Pos } from "./moves.js";
-import { getColor, isPiece } from "./piece.js";
+import { getColor, isPiece, Piece } from "./piece.js";
 
 /**
  * Repersents a point on the window.
  */
 export interface Point {
-    x: number,
-    y: number
+  x: number;
+  y: number;
 }
 
 /**
  * Repersents the hand of the human chess player.
  */
 export interface Hand {
-    piece: number,
-    homePos: Pos | null,
-    hoverPoint: Point | null
+  piece: Piece;
+  homePos: Pos | null;
+  hoverPoint: Point | null;
+}
+
+/**
+ * Repersents when a chess piece is picked up by the user.
+ */
+export interface Held {
+  piece: Piece;
+  home: Pos;
+  moves: Move[];
+  hover: Point | null;
+}
+
+/**
+ * Repersents when a chess piece is selected by the user.
+ */
+export interface Selected {
+  pos: Pos;
+  moves: Move[];
 }
 
 /**
  * Repersents the chess game.
+ * The chess game is the point of contact for both the engine and input
+ * to control aspects of the chess game such as moveing pieces.
  */
 export class Game {
   board: Board;
-  hand: Hand;
-  possibleMoves: Move[];
+
+  selected: Selected | null;
+  held: Held | null;
+
+  //   hand: Hand;
+  //   possibleMoves: Move[];
 
   constructor() {
-    this.board = createBoard();
-    this.hand = { piece: 0, homePos: null, hoverPoint: null };
-    this.possibleMoves = [];
-    // more to come
+    this.board = createStartingBoard();
+
+    this.selected = null;
+    this.held = null;
+
+    // remove
+    // this.hand = { piece: 0, homePos: null, hoverPoint: null };
+    // this.possibleMoves = [];
+  }
+
+  hasSelectedPiece(): boolean {
+    return this.selected != null;
   }
 
   /**
    * Returns true if a piece is being held from the board.
-   * @returns { boolean }
    */
-  isHoldingPiece() {
-    return this.hand.piece != 0;
+  isHoldingPiece(): boolean {
+    return this.held != null;
+    // return this.hand.piece != 0;
+  }
+
+  /**
+   * Unselects the current piece if one is selected.
+   */
+  clearSelectedPiece() {
+    this.selected = null;
+  }
+
+  /**
+   * Returns true if the currently selected piece can move to the given position.
+   * Throws GameStateError !hasSelectedPiece().
+   */
+  canMoveSelectedPiece(pos: Pos): boolean {
+    if (!this.hasSelectedPiece()) {
+      throw new GameStateError(
+        "Cannot check selected piece movement with selected piece"
+      );
+    }
+
+    // cleanup: must combine with duplicate later
+    const hasPossibleMove = this.selected.moves.filter(
+      (move) => move.end.row === pos.row && move.end.col === pos.col
+    );
+
+    if (hasPossibleMove.length != 0) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Moves the selected piece to the given position.
+   * Throws GameStateError !canMoveSelectedPiece().
+   */
+  moveSelectedPiece(pos: Pos) {
+    if (!this.canMoveSelectedPiece(pos)) {
+      throw new GameStateError("Cannot move selected piece");
+    }
+
+    const piece = getPiece(this.selected.pos, this.board);
+    setPiece(this.selected.pos, 0, this.board);
+    setPiece(pos, piece, this.board);
+    this.selected = null;
+    changeToMove(this.board);
   }
 
   /**
    * Drops the held piece at the given position if it is legal
-   * otherwise, returns the held piece to its original square
-   * @param { Pos } pos
+   * otherwise, returns the held piece to its original square.
+   * Throws GameStateError if !this.isHoldingPiece().
    */
-  dropPiece(pos) {
-    if (!this.isHoldingPiece) {
-      throw new GameStateError("Cannot drop a piece without holding one.");
+  dropPiece(pos: Pos) {
+    if (!this.isHoldingPiece()) {
+      throw new GameStateError("Cannot drop a piece without holding one");
     }
 
     // does the possible moves contain the position?
-    const hasPossibleMove = this.possibleMoves.filter(
+    const hasPossibleMove = this.held.moves.filter(
       (move) => move.end.row === pos.row && move.end.col === pos.col
     );
 
     if (isInvalidPos(pos) || hasPossibleMove.length == 0) {
       // return piece to orginal square
-      setPiece(this.hand.homePos as Pos, this.hand.piece, this.board);
-      this.hand = { piece: 0, homePos: null, hoverPoint: null };
+      setPiece(this.held.home, this.held.piece, this.board);
+      this.selected = { pos: this.held.home, moves: this.held.moves };
+      this.held = null;
       return;
     }
 
     // move piece to valid move
-    setPiece(pos, this.hand.piece, this.board);
-    this.hand = { piece: 0, homePos: null, hoverPoint: null };
+    setPiece(pos, this.held.piece, this.board);
+    this.held = null;
 
-    this.possibleMoves = [];
     changeToMove(this.board);
   }
   /**
    * Returns true if a piece can be picked up from the give pos.
-   * @param { Pos } pos
-   * @returns { boolean }
    */
-  canPickupPiece(pos) {
+  canPickupPiece(pos: Pos): boolean {
     if (isInvalidPos(pos)) return false;
 
     const piece = getPiece(pos, this.board);
@@ -97,43 +173,30 @@ export class Game {
   }
 
   /**
-   * Pickup the piece at the given pos
-   * @param { Pos } pos
+   * Pickup the piece at the given pos.
    */
-  pickupPiece(pos) {
+  pickupPiece(pos: Pos, hover: Point) {
     if (!this.canPickupPiece(pos)) {
       throw new GameStateError("Cannot pickup the piece at " + pos);
     }
     const piece = getPiece(pos, this.board);
-    this.hand.piece = piece;
+    this.held = {
+      piece: piece,
+      home: pos,
+      hover: hover,
+      moves: getMovesForPiece(pos, this.board),
+    };
     setPiece(pos, 0, this.board);
-    this.hand.homePos = pos;
   }
 
   /**
-   * Sets the hover point of the held piece
-   * throws PieceMovementError if !isHoldingPiece().
-   * @param { Point } point
+   * Sets the hover point of the held piece.
+   * Throws PieceMovementError if !isHoldingPiece().
    */
-  hoverHoldingPiece(point) {
+  hoverHoldingPiece(point: Point) {
     if (!this.isHoldingPiece()) {
       throw new GameStateError("Cannot hover when their is not a held piece.");
     }
-    this.hand.hoverPoint = point;
-  }
-
-  /**
-   * Sets the players possible moves to the ones from the given pos.
-   * @param { Pos } pos
-   */
-  setPossibleMoves(pos) {
-    this.possibleMoves = getMovesForPiece(pos, this.board);
-  }
-
-  /**
-   * Clears the players possible moves.
-   */
-  clearPossibleMoves() {
-    this.possibleMoves = [];
+    this.held.hover = point;
   }
 }

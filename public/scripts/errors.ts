@@ -16,6 +16,14 @@ export class MissingPieceError extends Error {
   }
 }
 
+// when a piece does not exist at a position when it should
+export class InvalidPosError extends Error {
+  constructor(pos) {
+    super("The given position: " + pos.row + ", " + pos.col + " is invalid");
+    this.name = "InvalidPosError";
+  }
+}
+
 // when the board state is invalid in some way
 export class BoardStateError extends Error {
   constructor(message) {

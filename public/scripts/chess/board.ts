@@ -1,17 +1,19 @@
-import { BoardStateError, FENProcessingError } from "../errors.js";
+import { BoardStateError, FENProcessingError, InvalidPosError } from "../errors.js";
 import {
     BISHOP,
     BLACK,
+    getColor,
     KING,
     KNIGHT,
     PAWN,
+    Piece,
     QUEEN,
     ROOK,
     WHITE,
-    getColor,
 } from "./piece.js";
 
-import { getRawMovesForPiece, Pos} from "./moves.js";
+import { DEBUG } from "../constants.js";
+import { getRawMovesForPiece, Pos } from "./moves.js";
 
 
 /**
@@ -19,7 +21,7 @@ import { getRawMovesForPiece, Pos} from "./moves.js";
  */
 export interface Board {
     /** repersentation of the chess board using a single list */
-    mailbox: number[],
+    mailbox: Piece[],
     /** repersents the color of the pieces to move */
     toMove: number,
     /** false if white has lost the right to castle */
@@ -32,12 +34,10 @@ export interface Board {
     numReversibleMoves: number
 }
 
-
-
 /**
  * Creates a standard board with no moves played.
  */
-export function createBoard(): Board {
+export function createStartingBoard(): Board {
   let emptyBoard = {
     mailbox: new Array(64).fill(0),
     toMove: WHITE,
@@ -47,15 +47,16 @@ export function createBoard(): Board {
     numReversibleMoves: 0,
   };
 
-  loadBoardFromFEN(emptyBoard, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+  loadBoardPiecesFromFEN(emptyBoard, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
 
   return emptyBoard;
 }
 
 /**
  * Modifies the given board by adding the pieces specified in the FEN notation.
+ * Throws FENProcessingError if the given fen is invalid.
  */
-function loadBoardFromFEN(board: Board, fen: string) {
+function loadBoardPiecesFromFEN(board: Board, fen: string) {
   let row = 0;
   let col = 0;
   for (let i = 0; i < fen.length; i++) {
@@ -76,7 +77,6 @@ function loadBoardFromFEN(board: Board, fen: string) {
     if (char === char.toUpperCase()) {
       color = WHITE;
     }
-
     let type = 0;
     switch (char.toLowerCase()) {
       case "p":
@@ -101,7 +101,7 @@ function loadBoardFromFEN(board: Board, fen: string) {
     if (type === 0) {
       throw new FENProcessingError("FEN character is incorrect: " + char);
     }
-    setPiece({ row: row, col: col }, color | type, board);
+    setPiece({ row: row, col: col }, (color | type) as Piece, board);
     col++;
   }
 }
@@ -138,8 +138,8 @@ export function isInvalidPos(pos: Pos): boolean {
  * Throws BoardStateError if there is no king on the board.
  */
 function findKing(board: Board): Pos {
-  for (let row = 0; row <= 8; row++) {
-    for (let col = 0; col <= 8; col++) {
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
       const pos = { row: row, col: col };
       const piece = getPiece(pos, board);
       if (piece == (board.toMove | KING)) {
@@ -152,13 +152,14 @@ function findKing(board: Board): Pos {
 }
 
 /**
- * Returns true if the king is in check (of the current color).
+ * Returns true if the currently playing king is in check.
+ * Throws BoardStateError if there is no king of that color on the board.
  */
 export function isKingInCheck(board: Board): boolean {
   const kingsPos = findKing(board);
 
-  for (let row = 0; row <= 8; row++) {
-    for (let col = 0; col <= 8; col++) {
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
       const pos = { row: row, col: col };
       const piece = getPiece(pos, board);
       if (piece != 0 && getColor(piece) != board.toMove) {
@@ -177,27 +178,33 @@ export function isKingInCheck(board: Board): boolean {
 
 /**
  * Returns the index into the mailbox for the position on a chess board.
+ * Throws InvalidPosError if the given position is invalid
  */
 function calcIndex(pos: Pos): number {
+  if (isInvalidPos(pos)) {
+    throw new InvalidPosError(pos);
+  }
   return 8 * (7 - pos.row) + pos.col;
 }
 
 /**
  * Returns the piece on the board at the given position.
+ * Throws InvalidPosError if the given position is invalid
  */
-export function getPiece(pos: Pos, board: Board): number {
+export function getPiece(pos: Pos, board: Board): Piece {
   return board.mailbox[calcIndex(pos)];
 }
 
 /**
  * Sets the piece on the board at the given position.
+* Throws InvalidPosError if the given position is invalid
  */
-export function setPiece(pos: Pos, piece: number, board: Board) {
+export function setPiece(pos: Pos, piece: Piece, board: Board) {
   board.mailbox[calcIndex(pos)] = piece;
 }
 
 /**
- * Change the board's to move color.
+ * Changes the board's to move color.
  */
 export function changeToMove(board: Board) {
   if (board.toMove == WHITE) {
@@ -205,4 +212,25 @@ export function changeToMove(board: Board) {
   } else {
     board.toMove = WHITE;
   }
+}
+
+
+/**
+ * Checks if the board has valid state if running in debug mode.
+ * Throws BoardStateError if the board does not have valid state.
+ */
+export function assertBoardHasValidState(board: Board) {
+    if (!DEBUG) return;
+
+    if (board.mailbox.length != 64) {
+        throw new BoardStateError("Board mailbox length is " + board.mailbox.length);
+    }
+    if (!(board.toMove == WHITE || board.toMove == BLACK)) {
+        throw new BoardStateError("Board toMove is " + board.toMove);
+    }
+
+    if (board.numReversibleMoves < 0) {
+        throw new BoardStateError("Board numReversibleMoves is " + board.numReversibleMoves);
+    }
+
 }

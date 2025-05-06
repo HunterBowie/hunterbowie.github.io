@@ -17,16 +17,6 @@ export function getRawMovesForPiece(pos, board) {
             if (isWhite(piece)) {
                 direction = -1;
             }
-            // double push
-            if (!hasPawnMoved(pos, piece)) {
-                let doublePush = {
-                    start: pos,
-                    end: { row: pos.row + 2 * direction, col: pos.col },
-                };
-                if (isValidAndUnoccupied(doublePush, board)) {
-                    moves.push(doublePush);
-                }
-            }
             // single push
             let singlePush = {
                 start: pos,
@@ -34,6 +24,16 @@ export function getRawMovesForPiece(pos, board) {
             };
             if (isValidAndUnoccupied(singlePush, board)) {
                 moves.push(singlePush);
+                // double push
+                if (!hasPawnMoved(pos, piece)) {
+                    let doublePush = {
+                        start: pos,
+                        end: { row: pos.row + 2 * direction, col: pos.col },
+                    };
+                    if (isValidAndUnoccupied(doublePush, board)) {
+                        moves.push(doublePush);
+                    }
+                }
             }
             // side moves
             let attacks = [
@@ -179,7 +179,6 @@ function isLegalMove(move, board) {
     setPiece(move.start, 0, newBoard);
     setPiece(move.end, startPiece, newBoard);
     if (isKingInCheck(newBoard)) {
-        console.log("Danger");
         return false;
     }
     return true;

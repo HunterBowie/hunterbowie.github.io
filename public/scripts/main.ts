@@ -1,5 +1,6 @@
 import { Game } from "./chess/game.js";
-import { initDraw, startUpdatingDrawing } from "./draw.js";
+import { startUpdatingDrawing } from "./draw/chess.js";
+import { initDraw } from "./draw/core.js";
 import { startUpdatingInput } from "./input.js";
 
 /**

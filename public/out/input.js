@@ -1,4 +1,4 @@
-import { getCanvas, getSquareWidth } from "./draw.js";
+import { getCanvas, getSquareWidth } from "./draw/core.js";
 /**
  * Get the mouse point of the event relative to the canvas.
  */
@@ -21,14 +21,19 @@ function getMousePos(event) {
  * Starts the process of updating the game based on user input.
  */
 export function startUpdatingInput(game) {
-    let hand = game.hand;
     window.addEventListener("mousedown", (event) => {
+        // cleanup
         const pos = getMousePos(event);
-        game.clearPossibleMoves();
+        const point = getMousePoint(event);
         if (game.canPickupPiece(pos)) {
-            game.setPossibleMoves(pos);
-            game.pickupPiece(pos);
+            game.clearSelectedPiece();
+            game.pickupPiece(pos, point);
             game.hoverHoldingPiece(getMousePoint(event));
+        }
+        else if (game.hasSelectedPiece()) {
+            if (game.canMoveSelectedPiece(pos)) {
+                game.moveSelectedPiece(pos);
+            }
         }
     });
     window.addEventListener("mouseup", (event) => {
@@ -36,12 +41,10 @@ export function startUpdatingInput(game) {
         if (game.isHoldingPiece()) {
             game.dropPiece(pos);
         }
-        // TODO: REMOVE
-        hand = game.hand;
     });
     window.addEventListener("mousemove", (event) => {
-        if (hand.piece != 0) {
-            hand.hoverPoint = getMousePoint(event);
+        if (game.isHoldingPiece()) {
+            game.hoverHoldingPiece(getMousePoint(event));
         }
     });
 }
