@@ -26,24 +26,27 @@ function getMousePos(event: MouseEvent): Pos {
  * Starts the process of updating the game based on user input.
  */
 export function startUpdatingInput(game: Game) {
-  window.addEventListener("mousedown", (event) => {
+  window.addEventListener("pointerdown", (event) => {
     // cleanup
     const pos = getMousePos(event);
     const point = getMousePoint(event);
 
-    
+
     if (game.canPickupPiece(pos)) {
       game.clearSelectedPiece();
-      game.pickupPiece(pos, point);
-      game.hoverHoldingPiece(getMousePoint(event));
+      if (event.pointerType === "mouse") {
+          game.pickupPiece(pos, point);
+    } else {
+        game.selectPiece(pos);
+      }
     } else if (game.hasSelectedPiece()) {
-        if (game.canMoveSelectedPiece(pos)) {
-            game.moveSelectedPiece(pos);
-        }
+      if (game.canMoveSelectedPiece(pos)) {
+        game.moveSelectedPiece(pos);
+      }
     }
   });
 
-  window.addEventListener("mouseup", (event) => {
+  window.addEventListener("pointerup", (event) => {
     const pos = getMousePos(event);
     if (game.isHoldingPiece()) {
       game.dropPiece(pos);

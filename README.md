@@ -48,3 +48,11 @@ Creating a website to interact with several custom built chess engines.
 - Start to actually implement game logic and turns ect.
 - Get some kind of text to display scoreboard king of stuff like current turn,
  number of turns passed, piece score, computer eval score ect.
+
+
+ ....
+
+
+ # Day 4
+
+ 

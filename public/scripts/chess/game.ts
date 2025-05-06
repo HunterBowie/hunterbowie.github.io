@@ -51,35 +51,37 @@ export interface Selected {
  * to control aspects of the chess game such as moveing pieces.
  */
 export class Game {
-  board: Board;
-
-  selected: Selected | null;
-  held: Held | null;
-
-  //   hand: Hand;
-  //   possibleMoves: Move[];
-
-  constructor() {
-    this.board = createStartingBoard();
-
-    this.selected = null;
-    this.held = null;
-
-    // remove
-    // this.hand = { piece: 0, homePos: null, hoverPoint: null };
-    // this.possibleMoves = [];
-  }
-
-  hasSelectedPiece(): boolean {
-    return this.selected != null;
-  }
-
-  /**
-   * Returns true if a piece is being held from the board.
-   */
-  isHoldingPiece(): boolean {
-    return this.held != null;
-    // return this.hand.piece != 0;
+    board: Board;
+    
+    selected: Selected | null;
+    held: Held | null;
+    
+    
+    constructor() {
+        this.board = createStartingBoard();
+        
+        this.selected = null;
+        this.held = null;
+    }
+    
+    /**
+     * Returns true if a piece is selected.
+     */
+    hasSelectedPiece(): boolean {
+        return this.selected != null;
+    }
+    
+    /**
+     * Selects the piece with the given pos.
+     */
+    selectPiece(pos: Pos) {
+        this.selected = {pos: pos, moves: getMovesForPiece(pos, this.board)}
+    }
+    /**
+     * Returns true if a piece is being held from the board.
+    */
+   isHoldingPiece(): boolean {
+       return this.held != null;
   }
 
   /**

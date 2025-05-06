@@ -8,25 +8,28 @@ import { getColor, isPiece } from "./piece.js";
  * to control aspects of the chess game such as moveing pieces.
  */
 export class Game {
-    //   hand: Hand;
-    //   possibleMoves: Move[];
     constructor() {
         this.board = createStartingBoard();
         this.selected = null;
         this.held = null;
-        // remove
-        // this.hand = { piece: 0, homePos: null, hoverPoint: null };
-        // this.possibleMoves = [];
     }
+    /**
+     * Returns true if a piece is selected.
+     */
     hasSelectedPiece() {
         return this.selected != null;
     }
     /**
-     * Returns true if a piece is being held from the board.
+     * Selects the piece with the given pos.
      */
+    selectPiece(pos) {
+        this.selected = { pos: pos, moves: getMovesForPiece(pos, this.board) };
+    }
+    /**
+     * Returns true if a piece is being held from the board.
+    */
     isHoldingPiece() {
         return this.held != null;
-        // return this.hand.piece != 0;
     }
     /**
      * Unselects the current piece if one is selected.
