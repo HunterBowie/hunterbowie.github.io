@@ -168,10 +168,10 @@ export function changeToMove(board) {
     }
 }
 /**
- * Checks if the board has valid state if running in debug mode.
+ * Checks if the board has invalid state when debug mode is enabled.
  * Throws BoardStateError if the board does not have valid state.
  */
-export function assertBoardHasValidState(board) {
+export function assertBoardInvariant(board) {
     if (!DEBUG)
         return;
     if (board.mailbox.length != 64) {

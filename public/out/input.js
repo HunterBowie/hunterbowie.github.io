@@ -22,7 +22,6 @@ function getMousePos(event) {
  */
 export function startUpdatingInput(game) {
     window.addEventListener("pointerdown", (event) => {
-        // cleanup
         const pos = getMousePos(event);
         const point = getMousePoint(event);
         if (game.canPickupPiece(pos)) {
@@ -39,6 +38,9 @@ export function startUpdatingInput(game) {
                 game.moveSelectedPiece(pos);
             }
         }
+    });
+    window.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
     });
     window.addEventListener("pointerup", (event) => {
         const pos = getMousePos(event);
