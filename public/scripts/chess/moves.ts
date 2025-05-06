@@ -1,22 +1,25 @@
 import {
-  copyBoard,
-  getPiece,
-  isInvalidPos,
-  isKingInCheck,
-  setPiece,
+    Board,
+    copyBoard,
+    getPiece,
+    isInvalidPos,
+    isKingInCheck,
+    setPiece,
 } from "./board.js";
 import {
-  BISHOP,
-  getType,
-  isPiece,
-  isSameColor,
-  isWhite,
-  KING,
-  KNIGHT,
-  PAWN,
-  QUEEN,
-  ROOK,
+    BISHOP,
+    getType,
+    isPiece,
+    isSameColor,
+    isWhite,
+    KING,
+    KNIGHT,
+    PAWN,
+    QUEEN,
+    ROOK,
 } from "./piece.js";
+
+import { MissingPieceError } from "../errors.js";
 
 /**
  * MOVES are just positions that a piece could go to from its current position.
@@ -26,25 +29,26 @@ import {
  */
 
 /**
- * @typedef { Object } Pos
- * @property { number } row - the row of the position on the board
- * @property { number } col - the col of the position on the board
+ * A position on a chess board.
  */
+export interface Pos {
+    row: number,
+    col: number
+}
 
 /**
- * @typedef { Object } Move
- * @property { Pos } start
- * @property { Pos } end
+ * A move on a chess board.
  */
+export interface Move {
+    start: Pos,
+    end: Pos
+}
 
 /**
  * Returns the position that the piece at the given pos can move to (including illegal moves).
  * Throws MissingPieceError if there is not piece at the given pos.
- * @param { Pos } pos
- * @param { Board } board
- * @returns { Move[] }
  */
-export function getRawMovesForPiece(pos, board) {
+export function getRawMovesForPiece(pos: Pos, board: Board): Move[] {
   let piece = getPiece(pos, board);
 
   if (piece == 0) {
@@ -53,7 +57,7 @@ export function getRawMovesForPiece(pos, board) {
     );
   }
 
-  let moves = [];
+  let moves: Move[] = [];
 
   switch (getType(piece)) {
     case PAWN:
@@ -97,17 +101,16 @@ export function getRawMovesForPiece(pos, board) {
       break;
 
     case KING:
-      // some craziness to get 3x3 with a hole in it
-      let rowColShift = [0, -1, 1];
-      let kingMoves = moves.concat(
-        rowColShift
-          .map((shift) =>
-            rowColShift.map((innerShift) => {
-              return { row: pos.row + shift, col: pos.col + innerShift };
-            })
-          )
-          .reduce((ar1, ar2) => ar1.concat(ar2))
-      );
+      const kingMoves = [
+        {row: pos.row + 1, col: pos.col},
+        {row: pos.row + 1, col: pos.col + 1},
+        {row: pos.row + 1, col: pos.col - 1},
+        {row: pos.row, col: pos.col + 1},
+        {row: pos.row, col: pos.col - 1},
+        {row: pos.row - 1, col: pos.col},
+        {row: pos.row - 1, col: pos.col + 1},
+        {row: pos.row - 1, col: pos.col - 1},
+      ]
 
       kingMoves.forEach((endPos, _) => {
         let move = { start: pos, end: endPos };
@@ -171,7 +174,7 @@ export function getMovesForPiece(pos, board) {
     );
   }
 
-  let legalMoves = [];
+  let legalMoves: Move[] = [];
 
   getRawMovesForPiece(pos, board).forEach((move, _) => {
     if (isLegalMove(move, board)) {
@@ -246,7 +249,6 @@ function isLegalMove(move, board) {
   setPiece(move.start, 0, newBoard);
   setPiece(move.end, startPiece, newBoard);
   if (isKingInCheck(newBoard)) {
-    console.log("Danger");
     return false;
   }
   return true;
@@ -306,7 +308,7 @@ function getStraightMoves(pos, board) {
  */
 function getSlidingMovesInDirection(pos, board, direction) {
   let piece = getPiece(pos, board);
-  let moves = [];
+  let moves: Move[] = [];
   let nextPos = { row: pos.row + direction.row, col: pos.col + direction.col };
   while (true) {
     if (isInvalidPos(nextPos)) {

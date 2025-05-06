@@ -1,16 +1,17 @@
 import {
-  CANVAS_MARGIN,
-  CHESS_BOARD_ID,
-  DARK_SQUARE,
-  DRAW_DELAY,
-  HIGHLIGHT_SQUARE,
-  LIGHT_SQUARE,
-  SPECIAL_HIGHLIGHT_SQUARE,
+    CANVAS_MARGIN,
+    CHESS_BOARD_ID,
+    DARK_SQUARE,
+    DRAW_DELAY,
+    HIGHLIGHT_SQUARE,
+    LIGHT_SQUARE,
+    SPECIAL_HIGHLIGHT_SQUARE,
 } from "./constants.js";
 
 import { getPiece } from "./chess/board.js";
-import { Game } from "./chess/game.js";
+import { Game, Hand, Point } from "./chess/game.js";
 
+import { Move, Pos } from "./chess/moves.js";
 import { BLACK } from "./chess/piece.js";
 
 const pieceNames = ["pawn", "bishop", "knight", "rook", "queen", "king"];
@@ -19,9 +20,8 @@ let pieceImages = {};
 
 /**
  * Initializes the context/canvas with the proper configs.
- * @returns { Promise }
  */
-export function initDraw() {
+export function initDraw(): Promise<unknown[]> {
   // setup canvas resizing
   resize();
   window.addEventListener("resize", () => resize());
@@ -47,33 +47,29 @@ export function initDraw() {
 
   return Promise.all(
     Array.from(allPieces).map(
-      (image) =>
-        new Promise((resolve) => image.addEventListener("load", resolve))
-    )
-  );
+    (image) =>
+      new Promise((resolve) => image.addEventListener("load", resolve))
+  ));
 }
 
 /**
  * Gets the canvas that repersents the chess board.
- * @returns { HTMLCanvasElement }
  */
-export function getCanvas() {
-  return document.getElementById(CHESS_BOARD_ID);
+export function getCanvas(): HTMLCanvasElement {
+  return document.getElementById(CHESS_BOARD_ID) as HTMLCanvasElement;
 }
 
 /**
  * Gets the context of the chess board canvas.
- * @returns { CanvasRenderingContext2D }
  */
-export function getContext() {
-  return getCanvas().getContext("2d");
+export function getContext(): CanvasRenderingContext2D {
+  return getCanvas().getContext("2d") as CanvasRenderingContext2D;
 }
 
 /**
  * Get the chess board tile width.
- * @returns { number }
  */
-export function getSquareWidth() {
+export function getSquareWidth(): number {
   return Number(getCanvas().style.width.slice(0, -2)) / 8;
 }
 
@@ -101,9 +97,8 @@ function drawBoardTiles() {
 
 /**
  * Draws the chess board pieces.
- * @param { Game } game
  */
-function drawBoardPieces(game) {
+function drawBoardPieces(game: Game) {
   const squareWidth = getSquareWidth();
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
@@ -125,7 +120,7 @@ function drawBoardPieces(game) {
 function resize() {
   const ctx = getContext();
   const canvas = getCanvas();
-  const infoBar = document.getElementById("info-bar");
+  const infoBar = document.getElementById("info-bar") as HTMLElement;
 
   const size =
     Math.min(window.innerWidth, window.innerHeight - 20) - CANVAS_MARGIN;
@@ -148,9 +143,8 @@ function resize() {
 
 /**
  * Draws the highlighted squares to the canvas.
- * @param { Move[] } moves
  */
-function drawPossibleMoves(moves) {
+function drawPossibleMoves(moves: Move[]) {
   const squareWidth = getSquareWidth();
   moves.forEach((move, _) => {
     drawRect(
@@ -165,32 +159,30 @@ function drawPossibleMoves(moves) {
 
 /**
  * Starts a process of updating the drawings.
- * @param { Game } game
  */
-export function startUpdatingDrawing(game) {
+export function startUpdatingDrawing(game: Game) {
   setInterval(() => {
     drawBoardTiles();
     drawPossibleMoves(game.possibleMoves);
-    drawHomeTile(game.heldSlot);
+    drawCurrentPieceTile(game.hand);
     drawBoardPieces(game);
-    drawHeldPiece(game.heldSlot);
+    drawHand(game.hand);
   }, DRAW_DELAY);
 }
 
 /**
  * Draws the highlighted tile for the piece's home square
  * if it is picked up.
- * @param { heldSlot } slot
  */
-function drawHomeTile(slot) {
-  if (slot.piece == 0) {
+function drawCurrentPieceTile(hand: Hand) {
+  if (hand.piece == 0) {
     return;
   }
 
   drawRect(
     SPECIAL_HIGHLIGHT_SQUARE,
-    slot.homePos.col * getSquareWidth(),
-    slot.homePos.row * getSquareWidth(),
+    (hand.homePos as Pos).col * getSquareWidth(),
+    (hand.homePos as Pos).row * getSquareWidth(),
     getSquareWidth(),
     getSquareWidth()
   );
@@ -198,29 +190,23 @@ function drawHomeTile(slot) {
 
 /**
  * Draws the held piece.
- * @param { heldSlot } slot
  */
-function drawHeldPiece(slot) {
-  if (slot.piece == 0) {
+function drawHand(hand: Hand) {
+  if (hand.piece == 0) {
     return;
   }
   const halfPieceWidth = Math.floor(getSquareWidth() / 2);
   drawPieceImage(
-    slot.piece,
-    slot.hoverPoint.x - halfPieceWidth,
-    slot.hoverPoint.y - halfPieceWidth
+    hand.piece,
+    (hand.hoverPoint as Point).x - halfPieceWidth,
+    (hand.hoverPoint as Point).y - halfPieceWidth
   );
 }
 
 /**
  * Draws a rectangle filled with the given color to the context.
- * @param {string} color
- * @param {number} x
- * @param {number} y
- * @param {number} width
- * @param {number} height
  */
-export function drawRect(color, x, y, width, height) {
+export function drawRect(color: string, x: number, y: number, width: number, height: number) {
   const ctx = getContext();
   ctx.fillStyle = color;
   ctx.fillRect(x, y, width, height);
@@ -228,13 +214,8 @@ export function drawRect(color, x, y, width, height) {
 
 /**
  * Draws an image to the context (better for a single image).
- * @param {number} piece
- * @param {number} x
- * @param {number} y
- * @param {number} width
- * @param {number} height
  */
-export function drawPieceImage(piece, x, y) {
+export function drawPieceImage(piece: number, x: number, y: number) {
   const squareWidth = getSquareWidth();
   getContext().drawImage(pieceImages[piece], x, y, squareWidth, squareWidth);
 }

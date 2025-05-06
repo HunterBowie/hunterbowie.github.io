@@ -1,0 +1,9 @@
+{
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "compilerOptions": {
+      "target": "ES2015",
+      "outDir": "out"
+    }
+  }

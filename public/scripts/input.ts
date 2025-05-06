@@ -1,12 +1,11 @@
-import { Game } from "./chess/game.js";
+import { Game, Point } from "./chess/game.js";
+import { Pos } from "./chess/moves.js";
 import { getCanvas, getSquareWidth } from "./draw.js";
 
 /**
  * Get the mouse point of the event relative to the canvas.
- * @param { MouseEvent } event
- * @returns { Point }
  */
-function getMousePoint(event) {
+function getMousePoint(event: MouseEvent): Point {
   const rect = getCanvas().getBoundingClientRect();
   const x = event.clientX - rect.left;
   const y = event.clientY - rect.top;
@@ -15,10 +14,8 @@ function getMousePoint(event) {
 
 /**
  * Get the mouse point of the event relative to the canvas.
- * @param { MouseEvent } event
- * @returns { Pos }
  */
-function getMousePos(event) {
+function getMousePos(event: MouseEvent): Pos {
   const point = getMousePoint(event);
   const row = Math.floor(point.y / getSquareWidth());
   const col = Math.floor(point.x / getSquareWidth());
@@ -27,11 +24,9 @@ function getMousePos(event) {
 
 /**
  * Starts the process of updating the game based on user input.
- * @param { Game } game
  */
-export function startUpdatingInput(game) {
-  let board = game.board;
-  let heldSlot = game.heldSlot;
+export function startUpdatingInput(game: Game) {
+  let hand = game.hand;
 
   window.addEventListener("mousedown", (event) => {
     const pos = getMousePos(event);
@@ -51,12 +46,12 @@ export function startUpdatingInput(game) {
       game.dropPiece(pos);
     }
     // TODO: REMOVE
-    heldSlot = game.heldSlot;
+    hand = game.hand;
   });
 
   window.addEventListener("mousemove", (event) => {
-    if (heldSlot.piece != 0) {
-      heldSlot.hoverPoint = getMousePoint(event);
+    if (hand.piece != 0) {
+      hand.hoverPoint = getMousePoint(event);
     }
   });
 }

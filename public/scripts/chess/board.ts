@@ -1,40 +1,49 @@
 import { BoardStateError, FENProcessingError } from "../errors.js";
 import {
-  BISHOP,
-  BLACK,
-  KING,
-  KNIGHT,
-  PAWN,
-  QUEEN,
-  ROOK,
-  WHITE,
-  getColor,
+    BISHOP,
+    BLACK,
+    KING,
+    KNIGHT,
+    PAWN,
+    QUEEN,
+    ROOK,
+    WHITE,
+    getColor,
 } from "./piece.js";
 
-import { getRawMovesForPiece } from "./moves.js";
+import { getRawMovesForPiece, Pos} from "./moves.js";
+
 
 /**
- * The entire state of a chess game.
- * @typedef { Object } Board
- * @property { number[] } mailbox - repersentation of the chess board using a single list
- * @property { Color } toMove - repersents the color to move
- * @property { boolean } whiteCastleRights - false if white has lost the right to castle
- * @property { boolean } blackCastleRights - false if black has lost the right to castle
- * @property { Pos } enPassantPiece - repersents the piece vulnurable to en passant otherwise null
- * @property { number } numReversibleMoves - repersents the number of moves made to the fifty-move rule
+ * The entire state of a chess board.
  */
+export interface Board {
+    /** repersentation of the chess board using a single list */
+    mailbox: number[],
+    /** repersents the color of the pieces to move */
+    toMove: number,
+    /** false if white has lost the right to castle */
+    whiteCastleRights: boolean,
+    /** false if black has lost the right to castle */
+    blackCastleRights: boolean,
+    /** the piece vulnurable to en passant otherwise null */
+    enPassant: Pos | null,
+    /** the number of moves made to the fifty-move rule */
+    numReversibleMoves: number
+}
+
+
 
 /**
  * Creates a standard board with no moves played.
- * @returns { Board }
  */
-export function createBoard() {
+export function createBoard(): Board {
   let emptyBoard = {
     mailbox: new Array(64).fill(0),
     toMove: WHITE,
     whiteCastleRights: true,
     blackCastleRights: true,
-    enPassantPiece: null,
+    enPassant: null,
     numReversibleMoves: 0,
   };
 
@@ -45,11 +54,8 @@ export function createBoard() {
 
 /**
  * Modifies the given board by adding the pieces specified in the FEN notation.
- * @param { Board } board
- * @param { string } fen
  */
-function loadBoardFromFEN(board, fen) {
-  let mailbox = new Array(64).fill(0);
+function loadBoardFromFEN(board: Board, fen: string) {
   let row = 0;
   let col = 0;
   for (let i = 0; i < fen.length; i++) {
@@ -102,26 +108,22 @@ function loadBoardFromFEN(board, fen) {
 
 /**
  * Returns a copy of the given board.
- * @param { Board } board
- * @returns { Board }
  */
-export function copyBoard(board) {
+export function copyBoard(board: Board): Board {
   return {
     mailbox: [...board.mailbox],
     toMove: board.toMove,
     whiteCastleRights: board.whiteCastleRights,
     blackCastleRights: board.blackCastleRights,
-    enPassantPiece: board.enPassantPiece,
+    enPassant: board.enPassant,
     numReversibleMoves: board.numReversibleMoves,
   };
 }
 
 /**
  * Returns true if the given position is invalid on a chess board.
- * @param { Pos } pos
- * @returns { boolean }
  */
-export function isInvalidPos(pos) {
+export function isInvalidPos(pos: Pos): boolean {
   if (pos.row < 0 || pos.col < 0) {
     return true;
   }
@@ -133,10 +135,9 @@ export function isInvalidPos(pos) {
 
 /**
  * Returns the position of the king of the current toMove color.
- * @param { Board } board
- * @returns { Pos }
+ * Throws BoardStateError if there is no king on the board.
  */
-function findKing(board) {
+function findKing(board: Board): Pos {
   for (let row = 0; row <= 8; row++) {
     for (let col = 0; col <= 8; col++) {
       const pos = { row: row, col: col };
@@ -152,15 +153,9 @@ function findKing(board) {
 
 /**
  * Returns true if the king is in check (of the current color).
- * @param { Board } board
- * @returns { boolean }
  */
-export function isKingInCheck(board) {
+export function isKingInCheck(board: Board): boolean {
   const kingsPos = findKing(board);
-
-  console.log(
-    "Checking... Our king is at " + kingsPos.row + ", " + kingsPos.col
-  );
 
   for (let row = 0; row <= 8; row++) {
     for (let col = 0; col <= 8; col++) {
@@ -171,7 +166,6 @@ export function isKingInCheck(board) {
         for (let index = 0; index < moves.length; index++) {
           const move = moves[index];
           if (move.end.row == kingsPos.row && move.end.col == kingsPos.col) {
-            console.log("King Target...");
             return true;
           }
         }
@@ -183,39 +177,29 @@ export function isKingInCheck(board) {
 
 /**
  * Returns the index into the mailbox for the position on a chess board.
- * @param { Pos } pos
- * @returns { number }
  */
-function calcIndex(pos) {
+function calcIndex(pos: Pos): number {
   return 8 * (7 - pos.row) + pos.col;
 }
 
 /**
  * Returns the piece on the board at the given position.
- * @param { Pos } pos
- * @param { Board } board
- * @returns { number }
  */
-export function getPiece(pos, board) {
+export function getPiece(pos: Pos, board: Board): number {
   return board.mailbox[calcIndex(pos)];
 }
 
 /**
  * Sets the piece on the board at the given position.
- * @param { Pos } pos
- * @param { number } piece
- * @param { Board } board
- * @returns { number }
  */
-export function setPiece(pos, piece, board) {
+export function setPiece(pos: Pos, piece: number, board: Board) {
   board.mailbox[calcIndex(pos)] = piece;
 }
 
 /**
  * Change the board's to move color.
- * @param { Board } board
  */
-export function changeToMove(board) {
+export function changeToMove(board: Board) {
   if (board.toMove == WHITE) {
     board.toMove = BLACK;
   } else {
