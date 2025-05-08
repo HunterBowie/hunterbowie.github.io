@@ -59,3 +59,13 @@ Creating a website to interact with several custom built chess engines.
 - Begin writing a test suite for getMoves()
 - Flesh out the public interface for Game and how it will interact with engine
 - Add requires clauses to the nessesary functions
+
+# May 7th
+
+- The board interface is good. Keep it, don't make it into a class. 
+- Decide what the standard notation for positions moves will be internally (within game) and externally (talking to the game class)
+- Refactor moves and board into one folder called "board" that splits up the various functions
+- Write out comments on the standards/terminology being used
+- Make all the functions within the board "package" robust 
+- Make some simple tests for anything testable you find in board package
+- Flesh out the public interface for Game and how it will interact with engine
