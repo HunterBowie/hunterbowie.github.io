@@ -1,6 +1,12 @@
 import { copyBoard, getPiece, isInvalidPos, isKingInCheck, setPiece, } from "./board.js";
-import { BISHOP, getType, isPiece, isSameColor, isWhite, KING, KNIGHT, PAWN, QUEEN, ROOK, } from "./piece.js";
+import { BISHOP, getColor, getType, isPiece, isSameColor, isWhite, KING, KNIGHT, PAWN, QUEEN, ROOK, } from "./piece.js";
 import { MissingPieceError } from "../errors.js";
+export var SpecialMove;
+(function (SpecialMove) {
+    SpecialMove[SpecialMove["CASTLE_KINGSIDE"] = 0] = "CASTLE_KINGSIDE";
+    SpecialMove[SpecialMove["CASTLE_QUEENSIDE"] = 1] = "CASTLE_QUEENSIDE";
+    SpecialMove[SpecialMove["EN_PASSANT"] = 2] = "EN_PASSANT";
+})(SpecialMove || (SpecialMove = {}));
 /**
  * Returns the position that the piece at the given pos can move to (including illegal moves).
  * Throws MissingPieceError if there is not piece at the given pos.
@@ -11,6 +17,7 @@ export function getRawMovesForPiece(pos, board) {
         throw new MissingPieceError("The pos: " + pos + " has no piece to get moves for.");
     }
     let moves = [];
+    const color = getColor(piece);
     switch (getType(piece)) {
         case PAWN:
             let direction = 1;
@@ -64,6 +71,18 @@ export function getRawMovesForPiece(pos, board) {
                     moves.push(move);
                 }
             });
+            // castling
+            //   let couldCastleKingside = board.blackCastleRightsKingside;
+            //   let couldCastleQueenside = board.blackCastleRightsQueenside;
+            //   if (color === WHITE) {
+            //     couldCastleKingside = board.whiteCastleRightsKingside;
+            //     couldCastleQueenside = board.whiteCastleRightsQueenside;
+            //   }
+            //   if (couldCastleKingside) {
+            //     if (canCastleKingside(board)) {
+            //       moves.push({ start: pos, end: { row: pos.row, col: pos.col + 2 } });
+            //     }
+            //   }
             break;
         case BISHOP:
             moves = moves.concat(getDiagonalMoves(pos, board));
@@ -97,6 +116,25 @@ export function getRawMovesForPiece(pos, board) {
     }
     return moves;
 }
+/**
+ * Returns true if the king to move can castle kingside.
+ * NOTE: does not check for previous states that could invalidate a castle.
+ */
+// function canCastleKingside(board: Board): boolean {
+//   if (isKingInCheck(board)) return false;
+//   const row = board.toMove === WHITE ? 7 : 0;
+//   const col = 4; // kings column
+//   const oneRight = { row: row, col: col + 1 };
+//   const twoRight = { row: row, col: col + 2 };
+//   if (getPiece(oneRight, board) != 0 || getPiece(twoRight, board) != 0) {
+//     return false;
+//   }
+//   const spots = [{ row: row, col: col }, oneRight, twoRight];
+//   if (isUnderAttack(spots, board)) {
+//     return false;
+//   }
+//   return true;
+// }
 /**
  * Returns the positions that the piece at the given pos can move to.
  * Throws MissingPieceError if there is not piece at the given pos.

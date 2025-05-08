@@ -3,7 +3,7 @@ import { GameStateError } from "../errors.js";
 import {
   assertBoardInvariant,
   Board,
-  changeToMove,
+  changeTurn,
   createStartingBoard,
   getPiece,
   isInvalidPos,
@@ -131,7 +131,7 @@ export class Game {
     setPiece(this.selected.pos, 0, this.board);
     setPiece(pos, piece, this.board);
     this.selected = null;
-    changeToMove(this.board);
+    changeTurn(this.board);
     this.assertInvariant();
   }
 
@@ -156,7 +156,7 @@ export class Game {
     setPiece(pos, this.held.piece, this.board);
     this.held = null;
 
-    changeToMove(this.board);
+    changeTurn(this.board);
     this.assertInvariant();
   }
   /**
@@ -207,7 +207,9 @@ export class Game {
   assertInvariant() {
     if (!DEBUG) return;
 
-    assertBoardInvariant(this.board);
+    if (!this.isHoldingPiece()) {
+      assertBoardInvariant(this.board);
+    }
 
     if (this.selected != null && this.held != null) {
       throw new GameStateError("The game has both a selected and held piece");

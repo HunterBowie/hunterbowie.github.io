@@ -50,9 +50,12 @@ Creating a website to interact with several custom built chess engines.
  number of turns passed, piece score, computer eval score ect.
 
 
- ....
+....
 
 
- # Day 4
+# May 6th
 
- 
+- Improve the coverage of the invariant for board (things like there being no king)
+- Begin writing a test suite for getMoves()
+- Flesh out the public interface for Game and how it will interact with engine
+- Add requires clauses to the nessesary functions

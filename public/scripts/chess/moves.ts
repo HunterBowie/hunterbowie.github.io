@@ -8,6 +8,7 @@ import {
 } from "./board.js";
 import {
   BISHOP,
+  getColor,
   getType,
   isPiece,
   isSameColor,
@@ -36,12 +37,19 @@ export interface Pos {
   col: number;
 }
 
+export enum SpecialMove {
+  CASTLE_KINGSIDE,
+  CASTLE_QUEENSIDE,
+  EN_PASSANT,
+}
+
 /**
  * A move on a chess board.
  */
 export interface Move {
   start: Pos;
   end: Pos;
+  special?: SpecialMove;
 }
 
 /**
@@ -58,6 +66,7 @@ export function getRawMovesForPiece(pos: Pos, board: Board): Move[] {
   }
 
   let moves: Move[] = [];
+  const color = getColor(piece);
 
   switch (getType(piece)) {
     case PAWN:
@@ -119,6 +128,21 @@ export function getRawMovesForPiece(pos: Pos, board: Board): Move[] {
         }
       });
 
+      // castling
+      //   let couldCastleKingside = board.blackCastleRightsKingside;
+      //   let couldCastleQueenside = board.blackCastleRightsQueenside;
+
+      //   if (color === WHITE) {
+      //     couldCastleKingside = board.whiteCastleRightsKingside;
+      //     couldCastleQueenside = board.whiteCastleRightsQueenside;
+      //   }
+
+      //   if (couldCastleKingside) {
+      //     if (canCastleKingside(board)) {
+      //       moves.push({ start: pos, end: { row: pos.row, col: pos.col + 2 } });
+      //     }
+      //   }
+
       break;
 
     case BISHOP:
@@ -157,6 +181,32 @@ export function getRawMovesForPiece(pos: Pos, board: Board): Move[] {
 
   return moves;
 }
+
+/**
+ * Returns true if the king to move can castle kingside.
+ * NOTE: does not check for previous states that could invalidate a castle.
+ */
+// function canCastleKingside(board: Board): boolean {
+//   if (isKingInCheck(board)) return false;
+
+//   const row = board.toMove === WHITE ? 7 : 0;
+
+//   const col = 4; // kings column
+
+//   const oneRight = { row: row, col: col + 1 };
+//   const twoRight = { row: row, col: col + 2 };
+
+//   if (getPiece(oneRight, board) != 0 || getPiece(twoRight, board) != 0) {
+//     return false;
+//   }
+
+//   const spots = [{ row: row, col: col }, oneRight, twoRight];
+
+//   if (isUnderAttack(spots, board)) {
+//     return false;
+//   }
+//   return true;
+// }
 
 /**
  * Returns the positions that the piece at the given pos can move to.

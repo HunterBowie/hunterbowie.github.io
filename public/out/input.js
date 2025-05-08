@@ -9,6 +9,18 @@ function getMousePoint(event) {
     return { x: x, y: y };
 }
 /**
+ * Returns true if the mouse point from the given event is within the canvas.
+ */
+function isMousePointFocused(event) {
+    const rect = getCanvas().getBoundingClientRect();
+    if (event.clientX < rect.right && event.clientY < rect.bottom) {
+        if (event.clientX > rect.left && event.clientY > rect.top) {
+            return true;
+        }
+    }
+    return false;
+}
+/**
  * Get the mouse point of the event relative to the canvas.
  */
 function getMousePos(event) {
@@ -40,7 +52,9 @@ export function startUpdatingInput(game) {
         }
     });
     window.addEventListener("contextmenu", (event) => {
-        event.preventDefault();
+        if (isMousePointFocused(event)) {
+            event.preventDefault();
+        }
     });
     window.addEventListener("pointerup", (event) => {
         const pos = getMousePos(event);

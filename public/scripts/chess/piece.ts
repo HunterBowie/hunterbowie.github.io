@@ -1,29 +1,18 @@
-export const PAWN = 1; // -001
-export const BISHOP = 2; // -010
-export const KNIGHT = 3; // -011
-export const ROOK = 4; // -010
-export const QUEEN = 5; // -101
-export const KING = 6; // -110
+export type PieceType = 1 | 2 | 3 | 4 | 5 | 6;
 
-export const WHITE = 0; // 0---
-export const BLACK = 8; // 1---
-
-export type PieceType = 
-   | typeof PAWN 
-   | typeof BISHOP 
-   | typeof KNIGHT 
-   | typeof ROOK 
-   | typeof QUEEN 
-   | typeof KING;
-
-export type PieceColor = 
-  | typeof WHITE
-  | typeof BLACK;
-
+export type PieceColor = 0 | 8;
 
 export type Piece = PieceType | PieceColor;
 
+export const PAWN: PieceType = 1; // -001
+export const BISHOP: PieceType = 2; // -010
+export const KNIGHT: PieceType = 3; // -011
+export const ROOK: PieceType = 4; // -010
+export const QUEEN: PieceType = 5; // -101
+export const KING: PieceType = 6; // -110
 
+export const WHITE: PieceColor = 0; // 0---
+export const BLACK: PieceColor = 8; // 1---
 /**
  * Returns true if the given piece is white.
  */
