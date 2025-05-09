@@ -1,7 +1,7 @@
-import { BLACK } from "../chess/piece.js";
+import { BLACK } from "../chess/board/piece.js";
 import { CANVAS_MARGIN, CHESS_BOARD_ID } from "../constants.js";
 const pieceNames = ["pawn", "bishop", "knight", "rook", "queen", "king"];
-let pieceImages = {};
+export let pieceImages = {};
 /**
  * Initializes the context/canvas with the proper configs.
  */
@@ -54,13 +54,6 @@ export function drawRect(color, x, y, width, height) {
     const ctx = getContext();
     ctx.fillStyle = color;
     ctx.fillRect(x, y, width, height);
-}
-/**
- * Draws an image to the context (better for a single image).
- */
-export function drawPieceImage(piece, x, y) {
-    const squareWidth = getSquareWidth();
-    getContext().drawImage(pieceImages[piece], x, y, squareWidth, squareWidth);
 }
 /**
  * Resizes the canvas to fit the window size.

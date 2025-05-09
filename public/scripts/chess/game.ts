@@ -1,16 +1,18 @@
 import { DEBUG } from "../constants.js";
 import { GameStateError } from "../errors.js";
+import { Logger } from "../logger.js";
 import {
-  assertBoardInvariant,
   Board,
-  changeTurn,
-  createStartingBoard,
   getPiece,
-  isInvalidPos,
+  loadBoardFromFEN,
+  nextTurn,
+  Pos,
   setPiece,
-} from "./board.js";
-import { getMovesForPiece, Move, Pos } from "./moves.js";
-import { getColor, isPiece, Piece } from "./piece.js";
+} from "./board/core.js";
+import { assertBoardInvariant } from "./board/invariant.js";
+import { Move } from "./board/moves/core.js";
+import { getMoves } from "./board/moves/legal.js";
+import { EMPTY_PIECE, getColor, Piece } from "./board/piece.js";
 
 /**
  * Repersents a point on the window.
@@ -58,7 +60,9 @@ export class Game {
   held: Held | null;
 
   constructor() {
-    this.board = createStartingBoard();
+    this.board = loadBoardFromFEN(
+      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    );
     this.selected = null;
     this.held = null;
     this.assertInvariant();
@@ -93,7 +97,7 @@ export class Game {
    * Selects the piece with the given pos.
    */
   selectPiece(pos: Pos) {
-    this.selected = { pos: pos, moves: getMovesForPiece(pos, this.board) };
+    this.selected = { pos: pos, moves: getMoves(pos, this.board) };
     this.assertInvariant();
   }
 
@@ -111,7 +115,7 @@ export class Game {
   canMoveSelectedPiece(pos: Pos): boolean {
     // cleanup: must combine with duplicate later
     const hasPossibleMove = this.selected.moves.filter(
-      (move) => move.end.row === pos.row && move.end.col === pos.col
+      (move) => move.end === pos
     );
 
     if (hasPossibleMove.length != 0) {
@@ -131,22 +135,19 @@ export class Game {
     setPiece(this.selected.pos, 0, this.board);
     setPiece(pos, piece, this.board);
     this.selected = null;
-    changeTurn(this.board);
+    nextTurn(this.board);
     this.assertInvariant();
   }
 
   /**
    * Drops the held piece at the given position if it is legal
    * otherwise, returns the held piece to its original square.
-   * Throws GameStateError if !this.isHoldingPiece().
    */
   dropPiece(pos: Pos) {
     // does the possible moves contain the position?
-    const hasPossibleMove = this.held.moves.filter(
-      (move) => move.end.row === pos.row && move.end.col === pos.col
-    );
+    const hasPossibleMove = this.held.moves.filter((move) => move.end === pos);
 
-    if (isInvalidPos(pos) || hasPossibleMove.length == 0) {
+    if (hasPossibleMove.length == 0) {
       // return piece to orginal square
       this.returnPickedPiece();
       return;
@@ -156,18 +157,16 @@ export class Game {
     setPiece(pos, this.held.piece, this.board);
     this.held = null;
 
-    changeTurn(this.board);
+    nextTurn(this.board);
     this.assertInvariant();
   }
   /**
    * Returns true if a piece can be picked up from the give pos.
    */
   canPickupPiece(pos: Pos): boolean {
-    if (isInvalidPos(pos)) return false;
-
     const piece = getPiece(pos, this.board);
 
-    if (!isPiece(piece)) return false;
+    if (piece === EMPTY_PIECE) return false;
 
     if (getColor(piece) != this.board.toMove) return false;
 
@@ -181,11 +180,13 @@ export class Game {
    */
   pickupPiece(pos: Pos, hover: Point) {
     const piece = getPiece(pos, this.board);
+    const moves = getMoves(pos, this.board);
+    Logger.log(Logger.GAME, `Generating ${moves.length} moves`);
     this.held = {
       piece: piece,
       home: pos,
       hover: hover,
-      moves: getMovesForPiece(pos, this.board),
+      moves: moves,
     };
     setPiece(pos, 0, this.board);
     this.assertInvariant();
@@ -213,28 +214,6 @@ export class Game {
 
     if (this.selected != null && this.held != null) {
       throw new GameStateError("The game has both a selected and held piece");
-    }
-
-    if (this.hasSelectedPiece()) {
-      if (isInvalidPos(this.selected.pos)) {
-        throw new GameStateError(
-          "The selected pos is " +
-            this.selected.pos.row +
-            ", " +
-            this.selected.pos.col
-        );
-      }
-    }
-
-    if (this.isHoldingPiece()) {
-      if (isInvalidPos(this.held.home)) {
-        throw new GameStateError(
-          "The selected pos is " +
-            this.held.home.row +
-            ", " +
-            this.held.home.col
-        );
-      }
     }
   }
 }

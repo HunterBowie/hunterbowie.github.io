@@ -1,4 +1,6 @@
+import { makePos } from "./chess/board/core.js";
 import { getCanvas, getSquareWidth } from "./draw/core.js";
+import { Logger } from "./logger.js";
 /**
  * Get the mouse point of the event relative to the canvas.
  */
@@ -27,16 +29,31 @@ function getMousePos(event) {
     const point = getMousePoint(event);
     const row = Math.floor(point.y / getSquareWidth());
     const col = Math.floor(point.x / getSquareWidth());
-    return { row: row, col: col };
+    const rankNum = 8 - row;
+    const fileNum = col + 1;
+    try {
+        return makePos(rankNum, fileNum);
+    }
+    catch (error) {
+        if (error instanceof RangeError) {
+            return null;
+        }
+        throw error;
+    }
 }
 /**
  * Starts the process of updating the game based on user input.
  */
 export function startUpdatingInput(game) {
     window.addEventListener("pointerdown", (event) => {
-        const pos = getMousePos(event);
+        Logger.log(Logger.INPUT, `Mouse down ... determining whether its valid pos`);
         const point = getMousePoint(event);
+        const pos = getMousePos(event);
+        if (pos === null)
+            return;
+        Logger.log(Logger.INPUT, `Mouse down at ${pos}`);
         if (game.canPickupPiece(pos)) {
+            Logger.log(Logger.INPUT, `Picking up/Selecting piece...`);
             game.clearSelectedPiece();
             if (event.pointerType === "mouse") {
                 game.pickupPiece(pos, point);
@@ -47,6 +64,7 @@ export function startUpdatingInput(game) {
         }
         else if (game.hasSelectedPiece()) {
             if (game.canMoveSelectedPiece(pos)) {
+                Logger.log(Logger.INPUT, `Moving selected piece...`);
                 game.moveSelectedPiece(pos);
             }
         }
@@ -58,6 +76,8 @@ export function startUpdatingInput(game) {
     });
     window.addEventListener("pointerup", (event) => {
         const pos = getMousePos(event);
+        if (pos === null)
+            return;
         if (game.isHoldingPiece()) {
             game.dropPiece(pos);
         }

@@ -1,6 +1,7 @@
-import { getPiece } from "../chess/board.js";
+import { getFileNumber, getPiece, getRankNumber, makePos, } from "../chess/board/core.js";
+import { EMPTY_PIECE } from "../chess/board/piece.js";
 import { DARK_SQUARE, DRAW_DELAY, LIGHT_SQUARE, SPECIAL_PURPLE, SPECIAL_YELLOW, } from "../constants.js";
-import { drawPieceImage, drawRect, getSquareWidth } from "./core.js";
+import { drawRect, getContext, getSquareWidth, pieceImages } from "./core.js";
 /**
  * Starts a process of updating the drawings.
  */
@@ -16,14 +17,10 @@ export function startUpdatingDrawing(game) {
  * Draws the chess board background.
  */
 function drawBoardTiles() {
-    const squareWidth = getSquareWidth();
-    for (let row = 0; row <= 8; row++) {
-        for (let col = 0; col <= 8; col++) {
-            let color = DARK_SQUARE;
-            if ((row + col) % 2 === 0) {
-                color = LIGHT_SQUARE;
-            }
-            drawTileWithColor({ row: row, col: col }, color);
+    for (let rankNum = 1; rankNum <= 8; rankNum++) {
+        for (let fileNum = 1; fileNum <= 8; fileNum++) {
+            let color = (rankNum + fileNum) % 2 === 0 ? LIGHT_SQUARE : DARK_SQUARE;
+            drawTileWithColor(makePos(rankNum, fileNum), color);
         }
     }
 }
@@ -32,12 +29,14 @@ function drawBoardTiles() {
  */
 function drawBoardPieces(game) {
     const squareWidth = getSquareWidth();
-    for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 8; col++) {
-            if (getPiece({ row: row, col: col }, game.board) == 0) {
+    for (let rankNum = 1; rankNum <= 8; rankNum++) {
+        for (let fileNum = 1; fileNum <= 8; fileNum++) {
+            const pos = makePos(rankNum, fileNum);
+            const piece = getPiece(pos, game.board);
+            if (piece === EMPTY_PIECE) {
                 continue;
             }
-            drawPieceImage(getPiece({ row: row, col: col }, game.board), col * squareWidth, row * squareWidth);
+            drawPieceImage(getPiece(pos, game.board), (fileNum - 1) * squareWidth, (8 - rankNum) * squareWidth);
         }
     }
 }
@@ -71,5 +70,12 @@ function drawHeldPiece(game) {
  * Draws a tile with the given color at the given position)
  */
 function drawTileWithColor(pos, color) {
-    drawRect(color, pos.col * getSquareWidth(), pos.row * getSquareWidth(), getSquareWidth(), getSquareWidth());
+    drawRect(color, (getFileNumber(pos) - 1) * getSquareWidth(), (8 - getRankNumber(pos)) * getSquareWidth(), getSquareWidth(), getSquareWidth());
+}
+/**
+ * Draws an image to the context (better for a single image).
+ */
+export function drawPieceImage(piece, x, y) {
+    const squareWidth = getSquareWidth();
+    getContext().drawImage(pieceImages[piece], x, y, squareWidth, squareWidth);
 }

@@ -69,3 +69,20 @@ Creating a website to interact with several custom built chess engines.
 - Make all the functions within the board "package" robust 
 - Make some simple tests for anything testable you find in board package
 - Flesh out the public interface for Game and how it will interact with engine
+
+
+# May 8th
+
+- Finish migrating the project over to using new position notation and board package
+- Make game robust
+- Write some tests for the getLegalMoves function
+- Flesh out the public interface for Game and how it will interact with engine
+- Add special moves
+
+
+# May 9th
+- Make game robust
+- Write some tests for the getLegalMoves function
+- Flesh out the public interface for Game and how it will interact with engine
+- Add special moves
+

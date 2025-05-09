@@ -25,12 +25,12 @@ const ENABLED_LOGS = {
  * Repersents a logger for the chess engines application.
  */
 export class Logger {
+    static GAME = LogCategory.GAME;
+    static INPUT = LogCategory.INPUT;
+    static NET = LogCategory.NET;
     static log(category, message) {
         if (ENABLED_LOGS[category]) {
             console.log(category + ": " + message);
         }
     }
 }
-Logger.GAME = LogCategory.GAME;
-Logger.INPUT = LogCategory.INPUT;
-Logger.NET = LogCategory.NET;

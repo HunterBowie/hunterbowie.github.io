@@ -39,3 +39,10 @@ export class GameStateError extends Error {
     this.name = "GameStateError";
   }
 }
+// when the position cannot be shifted because it will not be on the board
+export class PositionShiftError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "PositionShiftError";
+  }
+}
