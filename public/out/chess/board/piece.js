@@ -22,10 +22,11 @@ export function isBlack(piece) {
     return !isWhite(piece);
 }
 /**
- * Returns true if the pieces have the same color.
+ * Returns true if the piece has the given color.
+ * Returns false if the piece is empty.
  */
 export function isSameColor(firstPiece, secondPiece) {
-    return isWhite(firstPiece) == isWhite(secondPiece);
+    return isWhite(firstPiece) === isWhite(secondPiece);
 }
 /**
  * Returns the type value of the given piece.

@@ -12,14 +12,16 @@ export var LogCategory;
     LogCategory["GAME"] = "GAME";
     LogCategory["INPUT"] = "INPUT";
     LogCategory["NET"] = "NET";
+    LogCategory["CASTLING"] = "CASTLING";
 })(LogCategory || (LogCategory = {}));
 /**
  * For turning on and off the logging of different categories.
  */
 const ENABLED_LOGS = {
-    GAME: true,
+    GAME: false,
     INPUT: false,
-    NET: true,
+    NET: false,
+    CASTLING: true,
 };
 /**
  * Repersents a logger for the chess engines application.
@@ -28,6 +30,7 @@ export class Logger {
     static GAME = LogCategory.GAME;
     static INPUT = LogCategory.INPUT;
     static NET = LogCategory.NET;
+    static CASTLING = LogCategory.CASTLING;
     static log(category, message) {
         if (ENABLED_LOGS[category]) {
             console.log(category + ": " + message);

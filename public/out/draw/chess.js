@@ -1,6 +1,6 @@
 import { getFileNumber, getPiece, getRankNumber, makePos, } from "../chess/board/core.js";
 import { EMPTY_PIECE } from "../chess/board/piece.js";
-import { DARK_SQUARE, DRAW_DELAY, LIGHT_SQUARE, SPECIAL_PURPLE, SPECIAL_YELLOW, } from "../constants.js";
+import { DARK_SQUARE, DEBUG, DEBUG_SQUARE, DRAW_DELAY, LIGHT_SQUARE, SPECIAL_PURPLE, SPECIAL_YELLOW, } from "../constants.js";
 import { drawRect, getContext, getSquareWidth, pieceImages } from "./core.js";
 /**
  * Starts a process of updating the drawings.
@@ -54,6 +54,11 @@ function drawHighlightedBoardTiles(game) {
         drawTileWithColor(game.selected.pos, SPECIAL_PURPLE);
         game.selected.moves.forEach((move, _) => {
             drawTileWithColor(move.end, SPECIAL_YELLOW);
+        });
+    }
+    if (DEBUG) {
+        game.debugSquares.forEach((pos, _) => {
+            drawTileWithColor(pos, DEBUG_SQUARE);
         });
     }
 }

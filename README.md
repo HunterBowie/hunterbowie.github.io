@@ -86,3 +86,9 @@ Creating a website to interact with several custom built chess engines.
 - Flesh out the public interface for Game and how it will interact with engine
 - Add special moves
 
+
+# May 16th
+- finish castling implementation so that queenside castling works
+and all other castling rules are obeyed
+- implement final rules of the game such as promotion, game over checks, stalemate checks and so on
+

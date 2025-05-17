@@ -9,6 +9,8 @@ import { EMPTY_PIECE } from "../chess/board/piece.js";
 import { Game } from "../chess/game.js";
 import {
   DARK_SQUARE,
+  DEBUG,
+  DEBUG_SQUARE,
   DRAW_DELAY,
   LIGHT_SQUARE,
   SPECIAL_PURPLE,
@@ -75,6 +77,11 @@ function drawHighlightedBoardTiles(game: Game) {
     drawTileWithColor(game.selected.pos, SPECIAL_PURPLE);
     game.selected.moves.forEach((move, _) => {
       drawTileWithColor(move.end, SPECIAL_YELLOW);
+    });
+  }
+  if (DEBUG) {
+    game.debugSquares.forEach((pos, _) => {
+      drawTileWithColor(pos, DEBUG_SQUARE);
     });
   }
 }

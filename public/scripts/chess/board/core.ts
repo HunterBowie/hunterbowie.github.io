@@ -45,7 +45,7 @@ export interface Board {
   whiteCastleRightsQueenside: boolean;
   blackCastleRightsKingside: boolean;
   blackCastleRightsQueenside: boolean;
-  /** the piece vulnurable to en passant otherwise null */
+  /** the piece that *might be* vulnurable to en passant otherwise null */
   enPassant: Pos | null;
   /** the number of moves made to the fifty-move rule */
   numHalfMoves: number;

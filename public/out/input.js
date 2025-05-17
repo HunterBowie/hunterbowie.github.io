@@ -52,9 +52,9 @@ export function startUpdatingInput(game) {
         if (pos === null)
             return;
         Logger.log(Logger.INPUT, `Mouse down at ${pos}`);
-        if (game.canPickupPiece(pos)) {
-            Logger.log(Logger.INPUT, `Picking up/Selecting piece...`);
-            game.clearSelectedPiece();
+        if (game.canPickPiece(pos)) {
+            Logger.log(Logger.INPUT, `Picking up/Selectin piece...`);
+            game.unselectPiece();
             if (event.pointerType === "mouse") {
                 game.pickupPiece(pos, point);
             }
@@ -63,9 +63,12 @@ export function startUpdatingInput(game) {
             }
         }
         else if (game.hasSelectedPiece()) {
-            if (game.canMoveSelectedPiece(pos)) {
-                Logger.log(Logger.INPUT, `Moving selected piece...`);
-                game.moveSelectedPiece(pos);
+            const moves = game.getMovesForSelectedPiece();
+            const filteredMoves = moves.filter((move) => move.end === pos);
+            const hasMove = filteredMoves.length === 1;
+            if (hasMove) {
+                game.unselectPiece();
+                game.playMove(filteredMoves[0]);
             }
         }
     });
@@ -76,10 +79,20 @@ export function startUpdatingInput(game) {
     });
     window.addEventListener("pointerup", (event) => {
         const pos = getMousePos(event);
-        if (pos === null)
-            return;
+        if (pos === null) {
+            if (game.isHoldingPiece()) {
+                game.returnHeldPiece();
+            }
+        }
+        Logger.log(Logger.INPUT, `The mouse is lifting up at ${pos}`);
         if (game.isHoldingPiece()) {
-            game.dropPiece(pos);
+            const moves = game.getMovesForHeldPiece();
+            const filteredMoves = moves.filter((move) => move.end === pos);
+            const hasMove = filteredMoves.length === 1;
+            game.returnHeldPiece();
+            if (hasMove) {
+                game.playMove(filteredMoves[0]);
+            }
         }
     });
     window.addEventListener("mousemove", (event) => {

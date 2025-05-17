@@ -30,7 +30,7 @@ body {
 
 #info-bar {
     font-family: monospace;
-    font-size: clamp(2px, 1.5vw, 12px);
+    font-size: 12px;
     background-color: #222;
     color: rgb(136 174 163);
     padding: 4px 1px;

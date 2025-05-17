@@ -5,6 +5,7 @@ export const DARK_SQUARE = "rgb(108 148 137)";
 export const LIGHT_SQUARE = "rgb(136 174 163)";
 export const SPECIAL_YELLOW = "rgba(237, 226, 18, 0.25)";
 export const SPECIAL_PURPLE = "rgba(237, 18, 208, 0.15)";
+export const DEBUG_SQUARE = "rgba(143, 223, 24, 0.44)";
 export const CHESS_BOARD_ID = "chess-board";
 export const CANVAS_MARGIN = 20;
 export const DRAW_DELAY = 60 / 1000;

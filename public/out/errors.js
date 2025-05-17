@@ -41,3 +41,10 @@ export class PositionShiftError extends Error {
         this.name = "PositionShiftError";
     }
 }
+// when a move has a special effect that cannot be performed
+export class MoveError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = "MoveError";
+    }
+}

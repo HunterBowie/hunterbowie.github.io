@@ -11,15 +11,17 @@ export enum LogCategory {
   GAME = "GAME",
   INPUT = "INPUT",
   NET = "NET",
+  CASTLING = "CASTLING",
 }
 
 /**
  * For turning on and off the logging of different categories.
  */
 const ENABLED_LOGS: Record<LogCategory, boolean> = {
-  GAME: true,
+  GAME: false,
   INPUT: false,
-  NET: true,
+  NET: false,
+  CASTLING: true,
 };
 
 /**
@@ -29,6 +31,7 @@ export class Logger {
   static readonly GAME = LogCategory.GAME;
   static readonly INPUT = LogCategory.INPUT;
   static readonly NET = LogCategory.NET;
+  static readonly CASTLING = LogCategory.CASTLING;
 
   static log(category: LogCategory, message: string) {
     if (ENABLED_LOGS[category]) {

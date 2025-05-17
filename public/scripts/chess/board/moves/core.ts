@@ -1,18 +1,9 @@
-import { MissingPieceError, PositionShiftError } from "../../../errors.js";
-import { Board, getPiece, getRankNumber, Pos, shiftPos } from "../core.js";
-import {
-  BISHOP,
-  EMPTY_PIECE,
-  getType,
-  isSameColor,
-  isWhite,
-  KING,
-  KNIGHT,
-  PAWN,
-  Piece,
-  QUEEN,
-  ROOK,
-} from "../piece.js";
+import { BoardStateError } from "../../../errors.js";
+import { Board, getPiece, makePos, nextTurn, Pos, setPiece } from "../core.js";
+import { EMPTY_PIECE, getColor, KING } from "../piece.js";
+import { copyBoard } from "../utils.js";
+import { canCastleKingside } from "./castling.js";
+import { getRawMoves } from "./raw.js";
 
 // DATA DEFINITIONS
 
@@ -20,13 +11,15 @@ import {
  * A move on a chess board.
  *
  * This is not stored in short form algebraic notation for simplicity and instead
- * a long form consisting of a start position, end position, and flagged additional
+ * a long form consisting of a start position, end position,
+ * whether that move can take enemy pieces, and flagged additional
  * information about any special properties of the move.
  *
  */
 export interface Move {
   start: Pos;
   end: Pos;
+  attack: boolean;
   special?: SpecialMove;
 }
 
@@ -43,291 +36,95 @@ export enum SpecialMove {
   CASTLE_KINGSIDE,
   CASTLE_QUEENSIDE,
   EN_PASSANT,
+  OPEN_TO_EN_PASSANT,
   PROMOTION,
+  COULD_BREAK_CASTLE_RIGHTS,
 }
 
 // PUBLIC FUNCTION DEFINITIONS
 
 /**
- * Move Terminology:
- *
- * ILLEGAL: moves that if played would put the players king in check.
- * INVALID: moves that are off of the board or don't have piece at the starting position.
+ * LEGAL moves that if played would not put the players king in check.
  */
 
-// TODO:
 /**
- * Returns all moves that the given piece can make which are valid.
- * These moves may be illegal.
+ * Returns the positions that the piece at the given pos can move to.
+ * These moves are legal, meaning that they can be played according to the
+ * rules of chess.
  * Throws MissingPieceError if there is not piece at the given pos.
  * Throws BoardStateError if a board with an invalid mailbox is passed.
  */
-export function getValidMoves(pos: Pos, board: Board): Move[] {
-  // helps make new moves that are shifted from the original position quickly
-  // returns null if the move is invalid
-  function createMove(
-    rankShift: number,
-    fileShift: number,
-    special?: SpecialMove
-  ): Move | null {
-    let move: Move;
-    try {
-      move = { start: pos, end: shiftPos(pos, rankShift, fileShift) };
-    } catch (error: unknown) {
-      if (error instanceof PositionShiftError) {
-        return null;
-      }
-      throw error;
-    }
-    if (special === undefined) {
-      return move;
-    }
-    move.special = special;
-    return move;
-  }
+export function getMoves(pos: Pos, board: Board): Move[] {
+  return getRawMoves(pos, board).filter((move) => isLegalMove(move, board));
+}
 
-  let piece = getPiece(pos, board);
+/**
+ * Returns true if the king of the to move color is in check.
+ * Throws BoardStateError if there is no king of that color on the board.
+ * Throws BoardStateError if a board with an invalid mailbox is passed.
+ */
+export function isKingInCheck(board: Board): boolean {
+  const kingsPos = findKingPos(board);
 
-  if (piece === EMPTY_PIECE) {
-    throw new MissingPieceError(
-      "The pos: " + pos + " has no piece to get moves for."
-    );
-  }
+  // must be done to get moves for enemy pieces
+  const boardCopy = copyBoard(board);
+  nextTurn(boardCopy);
 
-  let moves: Move[] = [];
-
-  switch (getType(piece)) {
-    case PAWN:
-      let direction = isWhite(piece) ? 1 : -1;
-
-      // single push
-      const singlePush = createMove(direction, 0);
-      if (isValidAndUnoccupied(singlePush, board)) {
-        moves.push(singlePush);
-
-        // double push
-        if (!hasPawnMoved(pos, piece)) {
-          const doublePush = createMove(2 * direction, 0);
-          if (isValidAndUnoccupied(doublePush, board)) {
-            moves.push(doublePush);
+  for (let rankNum = 1; rankNum <= 8; rankNum++) {
+    for (let fileNum = 1; fileNum <= 8; fileNum++) {
+      const pos = makePos(rankNum, fileNum);
+      const piece = getPiece(pos, board);
+      if (piece !== EMPTY_PIECE && getColor(piece) !== board.toMove) {
+        const moves = getRawMoves(pos, boardCopy);
+        for (let index = 0; index < moves.length; index++) {
+          if (moves[index].end === kingsPos) {
+            return true;
           }
         }
       }
-
-      // side moves
-      let attacks = [createMove(direction, -1), createMove(direction, 1)];
-
-      attacks.forEach((move, _) => {
-        if (isValidAndOccupiedByEnemy(move, board)) {
-          moves.push(move);
-        }
-      });
-
-      break;
-
-    case KING:
-      const kingMoves = [
-        createMove(1, 0),
-        createMove(1, 1),
-        createMove(1, -1),
-        createMove(-1, 0),
-        createMove(-1, 1),
-        createMove(-1, -1),
-        createMove(0, 1),
-        createMove(0, -1),
-      ];
-
-      kingMoves.forEach((move, _) => {
-        if (isValidAndNotBlocked(move, board)) {
-          moves.push(move);
-        }
-      });
-
-      // castling
-      //   let couldCastleKingside = board.blackCastleRightsKingside;
-      //   let couldCastleQueenside = board.blackCastleRightsQueenside;
-
-      //   if (color === WHITE) {
-      //     couldCastleKingside = board.whiteCastleRightsKingside;
-      //     couldCastleQueenside = board.whiteCastleRightsQueenside;
-      //   }
-
-      //   if (couldCastleKingside) {
-      //     if (canCastleKingside(board)) {
-      //       moves.push({ start: pos, end: { row: pos.row, col: pos.col + 2 } });
-      //     }
-      //   }
-
-      break;
-
-    case BISHOP:
-      moves = moves.concat(getDiagonalMoves(pos, board));
-      break;
-
-    case ROOK:
-      moves = moves.concat(getStraightMoves(pos, board));
-      break;
-
-    case QUEEN:
-      moves = moves
-        .concat(getStraightMoves(pos, board))
-        .concat(getDiagonalMoves(pos, board));
-      break;
-
-    case KNIGHT:
-      let knightMoves = [
-        createMove(1, 2),
-        createMove(1, -2),
-        createMove(-1, 2),
-        createMove(-1, -2),
-        createMove(2, 1),
-        createMove(2, -1),
-        createMove(-2, 1),
-        createMove(-2, -1),
-      ];
-      knightMoves.forEach((move, _) => {
-        if (isValidAndNotBlocked(move, board)) {
-          moves.push(move);
-        }
-      });
-      break;
-  }
-
-  return moves;
-}
-
-// PRIVATE FUNCTION DEFINTIONS
-
-/**
- * Returns true if the move is not null and the end position of the move is unoccupied.
- * Throws BoardStateError if a board with an invalid mailbox is passed.
- */
-function isValidAndUnoccupied(move: Move | null, board: Board): boolean {
-  if (move == null) return false;
-
-  let piece = getPiece(move.end, board);
-
-  if (piece != 0) {
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Returns true if the move is not null and the end position is occupied by an enemy.
- * Throws BoardStateError if a board with an invalid mailbox is passed.
- */
-function isValidAndOccupiedByEnemy(move: Move | null, board: Board): boolean {
-  if (move == null) return false;
-
-  let startPiece = getPiece(move.start, board);
-  let endPiece = getPiece(move.end, board);
-  if (endPiece != 0) {
-    return !isSameColor(startPiece, endPiece);
+    }
   }
   return false;
 }
 
 /**
- * Returns true if the move is not null and the end position is occupied by an enemy or unoccupied.
+ * Returns the position of the king of the current toMove color.
+ * Throws BoardStateError if there is no king on the board.
  * Throws BoardStateError if a board with an invalid mailbox is passed.
  */
-function isValidAndNotBlocked(move: Move | null, board: Board): boolean {
-  if (move == null) return false;
-
-  let startPiece = getPiece(move.start, board);
-  let endPiece = getPiece(move.end, board);
-  if (endPiece != 0) {
-    return !isSameColor(startPiece, endPiece);
+export function findKingPos(board: Board): Pos {
+  for (let rankNum = 1; rankNum <= 8; rankNum++) {
+    for (let fileNum = 1; fileNum <= 8; fileNum++) {
+      const pos = makePos(rankNum, fileNum);
+      const piece = getPiece(pos, board);
+      if (piece === (board.toMove | KING)) {
+        return pos;
+      }
+    }
   }
-  return true;
+
+  throw new BoardStateError("There is no King on the board");
 }
 
+// PRIVATE FUNCTION DEFINITIONS
+
 /**
- * Returns true if the pawn has moved from its starting position.
+ * Returns true if the move is legal.
+ * Throws BoardStateError if a board with an invalid mailbox is passed.
  */
-function hasPawnMoved(pos: Pos, piece: Piece): boolean {
-  if (isWhite(piece)) {
-    if (getRankNumber(pos) == 2) {
-      return false;
-    }
-    return true;
+function isLegalMove(move: Move, board: Board): boolean {
+  if (move.special === SpecialMove.CASTLE_KINGSIDE) {
+    return canCastleKingside(board);
   }
-  if (getRankNumber(pos) == 7) {
+  if (move.special == SpecialMove.CASTLE_QUEENSIDE) {
+    // pass
+  }
+  let newBoard = copyBoard(board);
+  let startPiece = getPiece(move.start, board);
+  setPiece(move.start, 0, newBoard);
+  setPiece(move.end, startPiece, newBoard);
+  if (isKingInCheck(newBoard)) {
     return false;
   }
   return true;
-}
-
-/**
- * Get Diagonal moves for the piece at the given position.
- * Throws BoardStateError if a board with an invalid mailbox is passed.
- */
-function getDiagonalMoves(pos: Pos, board: Board): Move[] {
-  return getSlidingMovesInDirection(pos, board, 1, 1)
-    .concat(getSlidingMovesInDirection(pos, board, 1, -1))
-    .concat(getSlidingMovesInDirection(pos, board, -1, 1))
-    .concat(getSlidingMovesInDirection(pos, board, -1, -1));
-}
-
-/**
- * Get Straight moves for the piece at the given position.
- * Throws BoardStateError if a board with an invalid mailbox is passed.
- */
-function getStraightMoves(pos: Pos, board: Board): Move[] {
-  return getSlidingMovesInDirection(pos, board, 0, 1)
-    .concat(getSlidingMovesInDirection(pos, board, 1, 0))
-    .concat(getSlidingMovesInDirection(pos, board, -1, 0))
-    .concat(getSlidingMovesInDirection(pos, board, 0, -1));
-}
-
-/**
- * Get Diagonal moves for the piece at the given position in given direction.
- * Throws BoardStateError if a board with an invalid mailbox is passed.
- * Throws RangeError if the given shift values are not integers.
- */
-function getSlidingMovesInDirection(
-  pos: Pos,
-  board: Board,
-  rankShift: number,
-  fileShift: number
-) {
-  let piece = getPiece(pos, board);
-  let moves: Move[] = [];
-  try {
-    shiftPos(pos, rankShift, fileShift);
-  } catch (error: unknown) {
-    if (error instanceof PositionShiftError) {
-      return moves;
-    }
-    throw error;
-  }
-  let nextPos = shiftPos(pos, rankShift, fileShift);
-
-  while (true) {
-    let nextPiece = getPiece(nextPos, board);
-
-    if (nextPiece != EMPTY_PIECE && isSameColor(nextPiece, piece)) {
-      break;
-    }
-
-    moves.push({ start: pos, end: nextPos });
-
-    // pieces are different vision is blocked
-    if (nextPiece != EMPTY_PIECE) {
-      break;
-    }
-
-    // get next position in the sliding direction
-    try {
-      nextPos = shiftPos(nextPos, rankShift, fileShift);
-    } catch (error: unknown) {
-      if (error instanceof PositionShiftError) {
-        return moves;
-      }
-      throw error;
-    }
-  }
-  return moves;
 }

@@ -41,11 +41,13 @@ export function isBlack(piece: Piece): boolean {
   return !isWhite(piece);
 }
 
+
 /**
- * Returns true if the pieces have the same color.
+ * Returns true if the piece has the given color.
+ * Returns false if the piece is empty.
  */
 export function isSameColor(firstPiece: Piece, secondPiece: Piece): boolean {
-  return isWhite(firstPiece) == isWhite(secondPiece);
+  return isWhite(firstPiece) === isWhite(secondPiece);
 }
 
 /**
