@@ -12,19 +12,17 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled); // The maximum is exclusive and the minimum is inclusive
 }
 
-let maxNum = 1;
-
 app.post("/get_move/test", (req, res) => {
   const boardData = req.body;
 
-  //   if (data === undefined || typeof data !== "number") {
-  //     return res.status(400).json({ error: "Invalid data format" });
-  //   }
-  console.log(typeof boardData);
+  if (data === undefined || typeof data !== "object") {
+    return res.status(400).json({ error: "Invalid data format" });
+  }
 
-  maxNum = data;
-
-  res.json({ move: "-", number: getRandomInt(1, 10) });
+  res.json({
+    move: { start: "a7", end: "a6", attack: false },
+    number: getRandomInt(1, 10),
+  });
 });
 
 app.listen(PORT, () => {
