@@ -21,7 +21,7 @@ const ENABLED_LOGS = {
     GAME: false,
     INPUT: false,
     NET: false,
-    CASTLING: true,
+    CASTLING: false,
 };
 /**
  * Repersents a logger for the chess engines application.

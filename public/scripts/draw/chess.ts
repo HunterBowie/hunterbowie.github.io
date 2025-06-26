@@ -12,11 +12,19 @@ import {
   DEBUG,
   DEBUG_SQUARE,
   DRAW_DELAY,
+  END_PANEL_BLACK,
   LIGHT_SQUARE,
   SPECIAL_PURPLE,
   SPECIAL_YELLOW,
 } from "../constants.js";
-import { drawRect, getContext, getSquareWidth, pieceImages } from "./core.js";
+import {
+  drawRect,
+  drawText,
+  getContext,
+  getSquareWidth,
+  pieceImages,
+} from "./core.js";
+import { calcXYCenter, getCanvasWidth } from "./utils.js";
 
 /**
  * Starts a process of updating the drawings.
@@ -27,7 +35,20 @@ export function startUpdatingDrawing(game: Game) {
     drawHighlightedBoardTiles(game);
     drawBoardPieces(game);
     drawHeldPiece(game);
+    drawGameOverPanel(game);
   }, DRAW_DELAY);
+}
+
+/**
+ * Draws the opaque panal over the chess board when the game ends.
+ */
+function drawGameOverPanel(game: Game) {
+  if (!game.isOver()) return;
+
+  const canvasWidth = getCanvasWidth();
+  drawRect(END_PANEL_BLACK, 0, 0, canvasWidth, canvasWidth);
+
+  drawText("Game Over", calcXYCenter(), calcXYCenter(), 35);
 }
 
 /**

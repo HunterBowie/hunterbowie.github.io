@@ -1,4 +1,4 @@
-import { DEBUG } from "../constants.js";
+import { DEBUG, STARTING_FEN } from "../constants.js";
 import { GameStateError, MoveError } from "../errors.js";
 import { Logger } from "../logger.js";
 import {
@@ -19,13 +19,25 @@ import {
   removeKingsideCastlingRights,
   removeQueensideCastlingRights,
 } from "./board/moves/castling.js";
-import { getMoves, Move, SpecialMove } from "./board/moves/core.js";
 import {
+  getMoves,
+  isKingInCheck,
+  Move,
+  noMovesPlayable,
+  SpecialMove,
+} from "./board/moves/core.js";
+import {
+  BLACK,
   EMPTY_PIECE,
   getColor,
   getType,
+  isWhite,
   KING,
+  PAWN,
   Piece,
+  PieceColor,
+  PieceType,
+  QUEEN,
   WHITE,
 } from "./board/piece.js";
 
@@ -64,6 +76,11 @@ export interface Selected {
   moves: Move[];
 }
 
+export enum PlayerType {
+  BOT,
+  HUMAN,
+}
+
 /**
  * Repersents the chess game.
  * The chess game is the point of contact for both the engine and input
@@ -74,15 +91,48 @@ export class Game {
   selected: Selected | null;
   held: Held | null;
   debugSquares: Pos[];
+  promotionPiece: Piece = QUEEN;
+  playerTypeWhite: PlayerType;
+  playerTypeBlack: PlayerType;
+  callWhenBotToMove: () => void;
 
-  constructor() {
-    this.board = loadBoardFromFEN(
-      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-    );
+  constructor(whiteType: PlayerType, blackType: PlayerType) {
+    this.playerTypeWhite = whiteType;
+    this.playerTypeBlack = blackType;
+    this.board = loadBoardFromFEN(STARTING_FEN);
     this.selected = null;
     this.held = null;
     this.debugSquares = []; // used for highlighting chess squares for visual debug
+    this.callWhenBotToMove = () => {};
     this.assertInvariant();
+    if (this.playerTypeWhite === PlayerType.BOT) {
+      this.callWhenBotToMove();
+    }
+  }
+
+  /**
+   * Sets up a function that will be called when the bot player starts its turn.
+   */
+  onBotToMove(func: () => void) {
+    this.callWhenBotToMove = func;
+  }
+
+  /**
+   * Returns true if the human player is next to move.
+   */
+  isHumanPlayerToMove(): boolean {
+    const typeToMove =
+      this.board.toMove === WHITE ? this.playerTypeWhite : this.playerTypeBlack;
+    return typeToMove === PlayerType.HUMAN;
+  }
+
+  /**
+   * Returns true if the bot player is next to move.
+   */
+  isBotPlayerToMove(): boolean {
+    const typeToMove =
+      this.board.toMove === WHITE ? this.playerTypeWhite : this.playerTypeBlack;
+    return typeToMove === PlayerType.BOT;
   }
 
   /**
@@ -116,6 +166,33 @@ export class Game {
   }
 
   /**
+   * Sets the promotion piece type of the next promotion event.
+   * Throws RangeError if pieceType === KING
+   * Throws RangeError if pieceType === PAWN
+   */
+  nextPiecePromotesTo(pieceType: PieceType) {
+    if (pieceType === KING) {
+      throw new RangeError("You cannot promote to a king");
+    }
+    if (pieceType === PAWN) {
+      throw new RangeError("You cannot promote to a pawn");
+    }
+
+    this.promotionPiece = pieceType;
+  }
+
+  /**
+   * Returns true if the given move will result in a promotion in this game.
+   */
+  isPromotionMove(move: Move): boolean {
+    if (getType(getPiece(move.start, this.board)) !== PAWN) return false;
+
+    if ([1, 8].includes(getRankNumber(move.end))) return true;
+
+    return false;
+  }
+
+  /**
    * Plays the given move on the board and advances the turn.
    * Requires the move to be legal and valid.
    */
@@ -130,12 +207,17 @@ export class Game {
         // TODO: fill in the special move effects
         case SpecialMove.CASTLE_KINGSIDE:
           Logger.log(Logger.CASTLING, "Castling Kingside");
-          const rookPos = shiftPos(move.end, 0, 1);
-          const rook = getPiece(rookPos, this.board);
-          setPiece(rookPos, 0, this.board);
-          setPiece(shiftPos(move.end, 0, -1), rook, this.board);
+          const rookPosKingside = shiftPos(move.end, 0, 1);
+          const rookKingside = getPiece(rookPosKingside, this.board);
+          setPiece(rookPosKingside, 0, this.board);
+          setPiece(shiftPos(move.end, 0, -1), rookKingside, this.board);
           break;
         case SpecialMove.CASTLE_QUEENSIDE:
+          Logger.log(Logger.CASTLING, "Castling Queenside");
+          const rookPosQueenside = shiftPos(move.end, 0, -2);
+          const rookQueenside = getPiece(rookPosQueenside, this.board);
+          setPiece(rookPosQueenside, 0, this.board);
+          setPiece(shiftPos(move.end, 0, 1), rookQueenside, this.board);
           break;
         case SpecialMove.EN_PASSANT:
           Logger.log(Logger.GAME, `En Passant at ${move.end}`);
@@ -144,6 +226,12 @@ export class Game {
           setPiece(removePieceAt, 0, this.board);
           break;
         case SpecialMove.PROMOTION:
+          setPiece(
+            move.end,
+            (this.promotionPiece | getColor(piece)) as Piece,
+            this.board
+          );
+          this.promotionPiece = QUEEN; // default promotion type
           break;
         case SpecialMove.OPEN_TO_EN_PASSANT:
           this.board.enPassant = this.#calcEnPassantSquare(
@@ -181,6 +269,41 @@ export class Game {
       }
     }
     nextTurn(this.board);
+    const playerTypeToMove =
+      this.board.toMove === WHITE ? this.playerTypeWhite : this.playerTypeBlack;
+    if (playerTypeToMove === PlayerType.BOT) {
+      this.callWhenBotToMove();
+    }
+  }
+
+  /**
+   * Returns true if the game is tied or won.
+   */
+  isOver(): boolean {
+    if (this.isHoldingPiece()) return false;
+    // TODO: FINISH IMPLEMENTATION
+    if (this.isCheckmate() !== null) return true;
+    if (this.isStalemate()) return true;
+    // three fold repetition ... insufficient material
+    return false;
+  }
+
+  /**
+   * Returns the color that won via checkmate.
+   * If no color has won via checkmate or there is a tie, returns null.
+   */
+  isCheckmate(): PieceColor | null {
+    if (noMovesPlayable(this.board) && !isKingInCheck(this.board)) {
+      return isWhite(this.board.toMove) ? BLACK : WHITE;
+    }
+    return null;
+  }
+
+  /**
+   * Returns true if game has tied because of a stalemate.
+   */
+  isStalemate(): boolean {
+    return noMovesPlayable(this.board) && isKingInCheck(this.board);
   }
 
   /**
@@ -281,6 +404,13 @@ export class Game {
 
     if (this.selected != null && this.held != null) {
       throw new GameStateError("The game has both a selected and held piece");
+    }
+
+    if (
+      this.playerTypeWhite === PlayerType.BOT &&
+      this.playerTypeBlack === PlayerType.BOT
+    ) {
+      throw new GameStateError("Bot vs. Bot is not a legitimate game (yet)");
     }
   }
 }

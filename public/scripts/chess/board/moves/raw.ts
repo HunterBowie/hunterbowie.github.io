@@ -14,7 +14,7 @@ import {
   QUEEN,
   ROOK,
 } from "../piece.js";
-import { canCastleKingsideRaw } from "./castling.js";
+import { canCastleKingsideRaw, canCastleQueensideRaw } from "./castling.js";
 import { Move, SpecialMove } from "./core.js";
 
 // DATA DEFINITIONS
@@ -84,11 +84,6 @@ export function getRawMoves(pos: Pos, board: Board): Move[] {
     );
   }
 
-  //   Logger.log(
-  //     Logger.CASTLING,
-  //     `Getting moves for piece: ${getType(piece)} of color: ${getColor(piece)}`
-  //   );
-
   let moves: Move[] = [];
 
   switch (getType(piece)) {
@@ -103,6 +98,9 @@ export function getRawMoves(pos: Pos, board: Board): Move[] {
 
       attacks.forEach((move, _) => {
         if (isValidAndOccupiedByEnemy(move, board)) {
+          if ([1, 8].includes(getRankNumber(move.end))) {
+            move.special = SpecialMove.PROMOTION;
+          }
           moves.push(move);
         }
       });
@@ -110,6 +108,9 @@ export function getRawMoves(pos: Pos, board: Board): Move[] {
       // single push
       const singlePush = createMove(direction, 0, false);
       if (isValidAndUnoccupied(singlePush, board)) {
+        if ([1, 8].includes(getRankNumber(singlePush.end))) {
+          singlePush.special = SpecialMove.PROMOTION;
+        }
         moves.push(singlePush);
 
         // double push
@@ -123,22 +124,24 @@ export function getRawMoves(pos: Pos, board: Board): Move[] {
           if (isValidAndUnoccupied(doublePush, board)) {
             moves.push(doublePush);
           }
-        } else if (board.enPassant !== null) {
-          // potential en passant
-          attacks.forEach((move, _) => {
-            if (move === null) return;
-            if (move.end === board.enPassant) {
-              if (!moves.some((move) => move.end === board.enPassant)) {
-                moves.push({
-                  start: move.start,
-                  end: move.end,
-                  attack: false,
-                  special: SpecialMove.EN_PASSANT,
-                });
-              }
-            }
-          });
         }
+      }
+
+      if (board.enPassant !== null) {
+        // potential en passant
+        attacks.forEach((move, _) => {
+          if (move === null) return;
+          if (move.end === board.enPassant) {
+            if (!moves.some((move) => move.end === board.enPassant)) {
+              moves.push({
+                start: move.start,
+                end: move.end,
+                attack: false,
+                special: SpecialMove.EN_PASSANT,
+              });
+            }
+          }
+        });
       }
 
       break;
@@ -171,6 +174,17 @@ export function getRawMoves(pos: Pos, board: Board): Move[] {
       if (kingsideCastle !== null) {
         if (canCastleKingsideRaw(board)) {
           moves.push(kingsideCastle);
+        }
+      }
+      const queensideCastle = createMove(
+        0,
+        -2,
+        false,
+        SpecialMove.CASTLE_QUEENSIDE
+      );
+      if (queensideCastle !== null) {
+        if (canCastleQueensideRaw(board)) {
+          moves.push(queensideCastle);
         }
       }
       break;

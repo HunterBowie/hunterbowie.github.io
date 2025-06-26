@@ -1,4 +1,5 @@
 import { makePos } from "./chess/board/core.js";
+import { BISHOP, KNIGHT, QUEEN, ROOK } from "./chess/board/piece.js";
 import { getCanvas, getSquareWidth } from "./draw/core.js";
 import { Logger } from "./logger.js";
 /**
@@ -45,7 +46,43 @@ function getMousePos(event) {
  * Starts the process of updating the game based on user input.
  */
 export function startUpdatingInput(game) {
+    const keysPressed = new Set();
+    const promotionKeys = ["r", "k", "b", "q"];
+    const promotionTypes = [ROOK, KNIGHT, BISHOP, QUEEN];
+    window.addEventListener("keydown", (event) => keysPressed.add(event.key));
+    window.addEventListener("keyup", (event) => keysPressed.delete(event.key));
+    /**
+     * Returns true if the user has held down promotion relevant keys.
+     */
+    function hasPromotionInput() {
+        return promotionKeys.some((key) => keysPressed.has(key));
+    }
+    /**
+     * Returns the piece type to promote to given which keys the user has held down.
+     * Throws Error if !hasPromotionInput().
+     */
+    function getPromotionInput() {
+        for (let key of promotionKeys) {
+            if (keysPressed.has(key)) {
+                return promotionTypes[promotionKeys.indexOf(key)];
+            }
+        }
+        throw Error("hasPromotionInput() cannot be false when getPromotionInput() is called");
+    }
+    /**
+     * Process the promotion input from the user for the given move
+     * if that move is a promotion.
+     */
+    function processPromotionInput(move) {
+        if (game.isPromotionMove(move)) {
+            if (hasPromotionInput()) {
+                game.nextPiecePromotesTo(getPromotionInput());
+            }
+        }
+    }
     window.addEventListener("pointerdown", (event) => {
+        if (game.isOver() || !game.isHumanPlayerToMove())
+            return;
         Logger.log(Logger.INPUT, `Mouse down ... determining whether its valid pos`);
         const point = getMousePoint(event);
         const pos = getMousePos(event);
@@ -67,8 +104,10 @@ export function startUpdatingInput(game) {
             const filteredMoves = moves.filter((move) => move.end === pos);
             const hasMove = filteredMoves.length === 1;
             if (hasMove) {
+                const move = filteredMoves[0];
                 game.unselectPiece();
-                game.playMove(filteredMoves[0]);
+                processPromotionInput(move);
+                game.playMove(move);
             }
         }
     });
@@ -78,6 +117,8 @@ export function startUpdatingInput(game) {
         }
     });
     window.addEventListener("pointerup", (event) => {
+        if (game.isOver() || !game.isHumanPlayerToMove())
+            return;
         const pos = getMousePos(event);
         if (pos === null) {
             if (game.isHoldingPiece()) {
@@ -91,11 +132,15 @@ export function startUpdatingInput(game) {
             const hasMove = filteredMoves.length === 1;
             game.returnHeldPiece();
             if (hasMove) {
-                game.playMove(filteredMoves[0]);
+                const move = filteredMoves[0];
+                processPromotionInput(move);
+                game.playMove(move);
             }
         }
     });
     window.addEventListener("mousemove", (event) => {
+        if (game.isOver() || !game.isHumanPlayerToMove())
+            return;
         if (game.isHoldingPiece()) {
             game.hoverHoldingPiece(getMousePoint(event));
         }

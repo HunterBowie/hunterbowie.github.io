@@ -2,7 +2,7 @@ import { BoardStateError } from "../../../errors.js";
 import { getPiece, makePos, nextTurn, setPiece } from "../core.js";
 import { EMPTY_PIECE, getColor, KING } from "../piece.js";
 import { copyBoard } from "../utils.js";
-import { canCastleKingside } from "./castling.js";
+import { canCastleKingside, canCastleQueenside } from "./castling.js";
 import { getRawMoves } from "./raw.js";
 /**
  * A special type of chess move.
@@ -79,6 +79,24 @@ export function findKingPos(board) {
     }
     throw new BoardStateError("There is no King on the board");
 }
+/**
+ * Returns true if the to move color has no moves to play.
+ * Throws BoardStateError if a board with an invalid mailbox is passed.
+ */
+export function noMovesPlayable(board) {
+    for (let rankNum = 1; rankNum <= 8; rankNum++) {
+        for (let fileNum = 1; fileNum <= 8; fileNum++) {
+            const pos = makePos(rankNum, fileNum);
+            const piece = getPiece(pos, board);
+            if (piece !== EMPTY_PIECE && getColor(piece) === board.toMove) {
+                if (getMoves(pos, board).length > 0) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
 // PRIVATE FUNCTION DEFINITIONS
 /**
  * Returns true if the move is legal.
@@ -89,7 +107,7 @@ function isLegalMove(move, board) {
         return canCastleKingside(board);
     }
     if (move.special == SpecialMove.CASTLE_QUEENSIDE) {
-        // pass
+        return canCastleQueenside(board);
     }
     let newBoard = copyBoard(board);
     let startPiece = getPiece(move.start, board);

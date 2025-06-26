@@ -1,5 +1,6 @@
 import { BLACK } from "../chess/board/piece.js";
 import { CANVAS_MARGIN, CHESS_BOARD_ID } from "../constants.js";
+import { getCanvasWidth } from "./utils.js";
 
 const pieceNames = ["pawn", "bishop", "knight", "rook", "queen", "king"];
 
@@ -58,7 +59,7 @@ export function getContext(): CanvasRenderingContext2D {
  * Get the chess board tile width.
  */
 export function getSquareWidth(): number {
-  return Number(getCanvas().style.width.slice(0, -2)) / 8;
+  return getCanvasWidth() / 8;
 }
 
 /**
@@ -74,6 +75,23 @@ export function drawRect(
   const ctx = getContext();
   ctx.fillStyle = color;
   ctx.fillRect(x, y, width, height);
+}
+
+/**
+ * Draws black text with the given font size to the context.
+ */
+export function drawText(
+  text: string,
+  xCenter: number,
+  yCenter: number,
+  fontSize: number
+) {
+  const ctx = getContext();
+  ctx.font = `${fontSize}px Verdana`;
+  ctx.fillStyle = "black";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, xCenter, yCenter);
 }
 
 /**

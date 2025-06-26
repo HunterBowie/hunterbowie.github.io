@@ -1,7 +1,7 @@
 import { MissingPieceError, PositionShiftError } from "../../../errors.js";
 import { getPiece, getRankNumber, shiftPos } from "../core.js";
 import { BISHOP, EMPTY_PIECE, getColor, getType, isSameColor, isWhite, KING, KNIGHT, PAWN, QUEEN, ROOK, } from "../piece.js";
-import { canCastleKingsideRaw } from "./castling.js";
+import { canCastleKingsideRaw, canCastleQueensideRaw } from "./castling.js";
 import { SpecialMove } from "./core.js";
 // DATA DEFINITIONS
 // PUBLIC FUNCTION DEFINITIONS
@@ -55,10 +55,6 @@ export function getRawMoves(pos, board) {
     if (getColor(piece) !== board.toMove) {
         throw new RangeError("Given piece is not the color of board.toMove: " + board.toMove);
     }
-    //   Logger.log(
-    //     Logger.CASTLING,
-    //     `Getting moves for piece: ${getType(piece)} of color: ${getColor(piece)}`
-    //   );
     let moves = [];
     switch (getType(piece)) {
         case PAWN:
@@ -70,12 +66,18 @@ export function getRawMoves(pos, board) {
             ];
             attacks.forEach((move, _) => {
                 if (isValidAndOccupiedByEnemy(move, board)) {
+                    if ([1, 8].includes(getRankNumber(move.end))) {
+                        move.special = SpecialMove.PROMOTION;
+                    }
                     moves.push(move);
                 }
             });
             // single push
             const singlePush = createMove(direction, 0, false);
             if (isValidAndUnoccupied(singlePush, board)) {
+                if ([1, 8].includes(getRankNumber(singlePush.end))) {
+                    singlePush.special = SpecialMove.PROMOTION;
+                }
                 moves.push(singlePush);
                 // double push
                 if (!hasPawnMoved(pos, piece)) {
@@ -84,23 +86,23 @@ export function getRawMoves(pos, board) {
                         moves.push(doublePush);
                     }
                 }
-                else if (board.enPassant !== null) {
-                    // potential en passant
-                    attacks.forEach((move, _) => {
-                        if (move === null)
-                            return;
-                        if (move.end === board.enPassant) {
-                            if (!moves.some((move) => move.end === board.enPassant)) {
-                                moves.push({
-                                    start: move.start,
-                                    end: move.end,
-                                    attack: false,
-                                    special: SpecialMove.EN_PASSANT,
-                                });
-                            }
+            }
+            if (board.enPassant !== null) {
+                // potential en passant
+                attacks.forEach((move, _) => {
+                    if (move === null)
+                        return;
+                    if (move.end === board.enPassant) {
+                        if (!moves.some((move) => move.end === board.enPassant)) {
+                            moves.push({
+                                start: move.start,
+                                end: move.end,
+                                attack: false,
+                                special: SpecialMove.EN_PASSANT,
+                            });
                         }
-                    });
-                }
+                    }
+                });
             }
             break;
         case KING:
@@ -124,6 +126,12 @@ export function getRawMoves(pos, board) {
             if (kingsideCastle !== null) {
                 if (canCastleKingsideRaw(board)) {
                     moves.push(kingsideCastle);
+                }
+            }
+            const queensideCastle = createMove(0, -2, false, SpecialMove.CASTLE_QUEENSIDE);
+            if (queensideCastle !== null) {
+                if (canCastleQueensideRaw(board)) {
+                    moves.push(queensideCastle);
                 }
             }
             break;

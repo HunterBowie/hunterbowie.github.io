@@ -6,7 +6,7 @@ import { findKingPos, isKingInCheck } from "./core.js";
 import { getRawMoves } from "./raw.js";
 // PUBLIC FUNCTION DEFINITIONS
 /**
- * Returns true if the king to move has the potential to castle.
+ * Returns true if the king to move has the potential to castle kingside.
  * Performs checks that don't result in recursion.
  */
 export function canCastleKingsideRaw(board) {
@@ -32,6 +32,32 @@ export function canCastleKingsideRaw(board) {
     return true;
 }
 /**
+ * Returns true if the king to move has the potential to castle queenside.
+ * Performs checks that don't result in recursion.
+ */
+export function canCastleQueensideRaw(board) {
+    Logger.log(Logger.CASTLING, "Performing raw checks for king castling (queenside).");
+    // ---> neither the rook nor the king have previously moved <---
+    const mightCastle = board.toMove === WHITE
+        ? board.whiteCastleRightsQueenside
+        : board.blackCastleRightsQueenside;
+    if (!mightCastle)
+        return false;
+    //   Logger.log(
+    //     Logger.CASTLING,
+    //     "Neither the rook nor the king have previously moved"
+    //   );
+    // ---> check if pieces are in the way <---
+    const pos = findKingPos(board);
+    const endPos = shiftPos(pos, 0, -2);
+    const spots = getSpotsFromFileRange(getRankNumber(endPos), getFileNumber(endPos), getFileNumber(pos));
+    const spotsWithoutKing = spots.filter((spot) => spot !== pos);
+    if (containsPieces(spotsWithoutKing, board))
+        return false;
+    //   Logger.log(Logger.CASTLING, "No pieces in the way");
+    return true;
+}
+/**
  * Returns true if the king can castle kingside.
  * Requires canCastleKingsideRaw(board)
  */
@@ -39,6 +65,27 @@ export function canCastleKingside(board) {
     const pos = findKingPos(board);
     const endPos = shiftPos(pos, 0, 2);
     const spots = getSpotsFromFileRange(getRankNumber(pos), getFileNumber(pos), getFileNumber(endPos));
+    Logger.log(Logger.CASTLING, "Doing legal checks for castling");
+    // ---> the king cannot be in check <---
+    if (isKingInCheck(board))
+        return false;
+    Logger.log(Logger.CASTLING, "The King is not in check");
+    // ---> the king does not pass through attacked squares <---
+    Logger.log(Logger.CASTLING, `Checking the spots: ${spots.toString()} for being under attack`);
+    if (isUnderAttack(spots, board))
+        return false;
+    Logger.log(Logger.CASTLING, "The king is allowed to castle");
+    // the king can castle
+    return true;
+}
+/**
+ * Returns true if the king can castle queenside.
+ * Requires canCastleQueensideRaw(board)
+ */
+export function canCastleQueenside(board) {
+    const pos = findKingPos(board);
+    const endPos = shiftPos(pos, 0, -2);
+    const spots = getSpotsFromFileRange(getRankNumber(endPos), getFileNumber(endPos), getFileNumber(pos));
     Logger.log(Logger.CASTLING, "Doing legal checks for castling");
     // ---> the king cannot be in check <---
     if (isKingInCheck(board))

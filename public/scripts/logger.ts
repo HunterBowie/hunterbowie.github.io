@@ -21,7 +21,7 @@ const ENABLED_LOGS: Record<LogCategory, boolean> = {
   GAME: false,
   INPUT: false,
   NET: false,
-  CASTLING: true,
+  CASTLING: false,
 };
 
 /**

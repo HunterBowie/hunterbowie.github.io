@@ -2,6 +2,12 @@
 
 Creating a website to interact with several custom built chess engines.
 
+## Running Things
+
+- to run chess server: node server/server.js
+- to run website: tsc --watch 
+
+
 
 # Day 1
 
@@ -85,7 +91,6 @@ Creating a website to interact with several custom built chess engines.
 - Write some tests for the getLegalMoves function
 - Flesh out the public interface for Game and how it will interact with engine
 - Add special moves
-
 
 # May 16th
 - finish castling implementation so that queenside castling works
