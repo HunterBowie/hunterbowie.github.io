@@ -1,3 +1,4 @@
+import { getFEN } from "../chess/board/core.js";
 const go = new window.Go();
 // PUBLIC FUNCTION DEFINITIONS
 export function startUpdatingBotCommands(game) {
@@ -5,7 +6,8 @@ export function startUpdatingBotCommands(game) {
         go.run(result.instance);
         game.onBotToMove(() => {
             console.log("CALCULATING MOVE");
-            const rawMove = window.GetBotMove("classic", 0, 1000, "rnbqkbnr/pppppppp/8/8/8/111P1111/PPP1PPPP/RNBQKBNR b KQkq - 0 1");
+            console.log(getFEN(game.board));
+            const rawMove = window.GetBotMove("classic", 0, 1000, getFEN(game.board));
             // NEED TO ADD FLAGS
             const move = {
                 start: rawMove.slice(0, 2),

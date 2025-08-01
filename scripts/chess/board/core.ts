@@ -6,6 +6,9 @@ import {
 import {
   BISHOP,
   BLACK,
+  EMPTY_PIECE,
+  getType,
+  isWhite,
   KING,
   KNIGHT,
   PAWN,
@@ -62,7 +65,81 @@ export type Rank = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
  */
 export type Pos = `${File}${Rank}`;
 
+const pieceSymbols = ["p", "b", "n", "r", "q", "k", "-"];
+const pieceTypes = [PAWN, BISHOP, KNIGHT, ROOK, QUEEN, KING];
+
 // PUBLIC FUNCTION DEFINITIONS
+
+/**
+ * Returns the FEN repersentation of the board
+ */
+export function getFEN(board: Board): string {
+  let fen = "";
+  for (let rank = 8; rank >= 1; rank--) {
+    let rankContent = "";
+    for (let file = 1; file <= 8; file++) {
+      const piece = getPiece(makePos(rank, file), board);
+      if (piece == EMPTY_PIECE) {
+        rankContent = rankContent + "1";
+      } else {
+        const pieceType = getType(piece);
+        let symbol = pieceSymbols[pieceTypes.indexOf(pieceType)];
+        if (isWhite(piece)) {
+          symbol = symbol.toUpperCase();
+        }
+        rankContent = rankContent + symbol;
+      }
+    }
+    if (rank != 1) {
+      rankContent = rankContent + "/";
+    }
+    fen = fen + rankContent;
+  }
+
+  let activeColor = "w";
+
+  if (board.toMove == BLACK) {
+    activeColor = "b";
+  }
+
+  fen = fen + " " + activeColor;
+
+  let castling = "";
+
+  if (board.whiteCastleRightsKingside) {
+    castling = castling + "K";
+  }
+
+  if (board.whiteCastleRightsQueenside) {
+    castling = castling + "Q";
+  }
+
+  if (board.blackCastleRightsKingside) {
+    castling = castling + "k";
+  }
+  if (board.blackCastleRightsQueenside) {
+    castling = castling + "q";
+  }
+
+  if (castling == "") {
+    castling = "-";
+  }
+
+  fen = fen + " " + castling;
+
+  let enPassant = "-";
+
+  if (board.enPassant != null) {
+    enPassant = board.enPassant;
+  }
+
+  fen = fen + " " + enPassant;
+
+  fen = fen + " " + board.numHalfMoves;
+  fen = fen + " " + board.numFullMoves;
+
+  return fen;
+}
 
 /**
  * Returns the piece at the given position on the given board.

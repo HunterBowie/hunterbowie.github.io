@@ -1,4 +1,4 @@
-import { Pos } from "../chess/board/core.js";
+import { getFEN, Pos } from "../chess/board/core.js";
 import { Move } from "../chess/board/moves/core.js";
 import { Game } from "../chess/game.js";
 
@@ -12,12 +12,13 @@ export function startUpdatingBotCommands(game: Game) {
       go.run(result.instance);
       game.onBotToMove(() => {
         console.log("CALCULATING MOVE");
+        console.log(getFEN(game.board));
 
         const rawMove: string = (window as any).GetBotMove(
           "classic",
           0,
           1000,
-          "rnbqkbnr/pppppppp/8/8/8/111P1111/PPP1PPPP/RNBQKBNR b KQkq - 0 1"
+          getFEN(game.board)
         );
 
         // NEED TO ADD FLAGS
