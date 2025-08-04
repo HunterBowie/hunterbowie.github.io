@@ -14,6 +14,7 @@ import {
   DRAW_DELAY,
   END_PANEL_BLACK,
   LIGHT_SQUARE,
+  SPECIAL_ORANGE,
   SPECIAL_PURPLE,
   SPECIAL_YELLOW,
 } from "../constants.js";
@@ -104,6 +105,10 @@ function drawHighlightedBoardTiles(game: Game) {
     game.debugSquares.forEach((pos, _) => {
       drawTileWithColor(pos, DEBUG_SQUARE);
     });
+  }
+  if (game.lastMoveStart != null) {
+    drawTileWithColor(game.lastMoveStart, SPECIAL_ORANGE);
+    drawTileWithColor(game.lastMoveEnd, SPECIAL_ORANGE);
   }
 }
 

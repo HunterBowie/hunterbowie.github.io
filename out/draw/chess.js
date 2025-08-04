@@ -1,6 +1,6 @@
 import { getFileNumber, getPiece, getRankNumber, makePos, } from "../chess/board/core.js";
 import { EMPTY_PIECE } from "../chess/board/piece.js";
-import { DARK_SQUARE, DEBUG, DEBUG_SQUARE, DRAW_DELAY, END_PANEL_BLACK, LIGHT_SQUARE, SPECIAL_PURPLE, SPECIAL_YELLOW, } from "../constants.js";
+import { DARK_SQUARE, DEBUG, DEBUG_SQUARE, DRAW_DELAY, END_PANEL_BLACK, LIGHT_SQUARE, SPECIAL_ORANGE, SPECIAL_PURPLE, SPECIAL_YELLOW, } from "../constants.js";
 import { drawRect, drawText, getContext, getSquareWidth, pieceImages, } from "./core.js";
 import { calcXYCenter, getCanvasWidth } from "./utils.js";
 /**
@@ -72,6 +72,10 @@ function drawHighlightedBoardTiles(game) {
         game.debugSquares.forEach((pos, _) => {
             drawTileWithColor(pos, DEBUG_SQUARE);
         });
+    }
+    if (game.lastMoveStart != null) {
+        drawTileWithColor(game.lastMoveStart, SPECIAL_ORANGE);
+        drawTileWithColor(game.lastMoveEnd, SPECIAL_ORANGE);
     }
 }
 /**

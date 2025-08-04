@@ -5,6 +5,7 @@ export const DARK_SQUARE = "rgb(108 148 137)";
 export const LIGHT_SQUARE = "rgb(136 174 163)";
 export const SPECIAL_YELLOW = "rgba(237, 226, 18, 0.25)";
 export const SPECIAL_PURPLE = "rgba(237, 18, 208, 0.15)";
+export const SPECIAL_ORANGE = "rgba(253, 123, 1, 0.25)";
 export const DEBUG_SQUARE = "rgba(143, 223, 24, 0.44)";
 export const END_PANEL_BLACK = "rgba(108, 148, 137, 0.75)";
 export const CHESS_BOARD_ID = "chess-board";

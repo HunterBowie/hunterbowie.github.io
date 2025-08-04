@@ -11,25 +11,31 @@ export function startUpdatingBotCommands(game: Game) {
     async (result) => {
       go.run(result.instance);
       game.onBotToMove(() => {
-        console.log("CALCULATING MOVE");
-        console.log(getFEN(game.board));
+        setTimeout(() => {
+          console.log("SENDING: " + getFEN(game.board));
 
-        const rawMove: string = (window as any).GetBotMove(
-          "classic",
-          0,
-          1000,
-          getFEN(game.board)
-        );
+          const data: string = (window as any).GetBotMove(
+            "classic",
+            0,
+            1000,
+            getFEN(game.board)
+          );
 
-        // NEED TO ADD FLAGS
+          const parts = data.split("-");
 
-        const move: Move = {
-          start: rawMove.slice(0, 2) as Pos,
-          end: rawMove.slice(2, 4) as Pos,
-          attack: false,
-        };
+          const rawMove = parts[0];
+          const flag = Number(parts[1]);
 
-        game.playMove(move);
+          console.log("RECIEVED: " + data);
+
+          const move: Move = {
+            start: rawMove.slice(0, 2) as Pos,
+            end: rawMove.slice(2, 4) as Pos,
+            flag: flag,
+          };
+
+          game.playMove(move);
+        }, 100);
       });
     }
   );

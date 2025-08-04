@@ -20,11 +20,17 @@ import {
   removeQueensideCastlingRights,
 } from "./board/moves/castling.js";
 import {
+  BreaksCastlingRightsFlag,
+  CastleKingsideFlag,
+  CastleQueensideFlag,
+  EnPassantFlag,
   getMoves,
   isKingInCheck,
   Move,
+  NoFlag,
   noMovesPlayable,
-  SpecialMove,
+  PawnDoublePushFlag,
+  PromoteToQueenFlag,
 } from "./board/moves/core.js";
 import {
   BLACK,
@@ -91,6 +97,8 @@ export class Game {
   selected: Selected | null;
   held: Held | null;
   debugSquares: Pos[];
+  lastMoveStart: Pos | null;
+  lastMoveEnd: Pos | null;
   promotionPiece: Piece = QUEEN;
   playerTypeWhite: PlayerType;
   playerTypeBlack: PlayerType;
@@ -102,12 +110,15 @@ export class Game {
     this.board = loadBoardFromFEN(STARTING_FEN);
     this.selected = null;
     this.held = null;
+    this.lastMoveStart = null;
+    this.lastMoveEnd = null;
     this.debugSquares = []; // used for highlighting chess squares for visual debug
     this.callWhenBotToMove = () => {};
     this.assertInvariant();
-    if (this.playerTypeWhite === PlayerType.BOT) {
-      this.callWhenBotToMove();
-    }
+    // MUST MOVE TO A START() function called in main after bot setup
+    // if (this.playerTypeWhite === PlayerType.BOT) {
+    //   this.callWhenBotToMove();
+    // }
   }
 
   /**
@@ -201,31 +212,30 @@ export class Game {
     const piece = getPiece(move.start, this.board);
     setPiece(move.start, 0, this.board);
     setPiece(move.end, piece, this.board);
-    if (move.special !== undefined) {
-      Logger.log(Logger.GAME, `Making a ${SpecialMove[move.special]} move`);
-      switch (move.special) {
-        // TODO: fill in the special move effects
-        case SpecialMove.CASTLE_KINGSIDE:
+    if (move.flag !== NoFlag) {
+      Logger.log(Logger.GAME, `Making a ${move.flag} move`);
+      switch (move.flag) {
+        case CastleKingsideFlag:
           Logger.log(Logger.CASTLING, "Castling Kingside");
           const rookPosKingside = shiftPos(move.end, 0, 1);
           const rookKingside = getPiece(rookPosKingside, this.board);
           setPiece(rookPosKingside, 0, this.board);
           setPiece(shiftPos(move.end, 0, -1), rookKingside, this.board);
           break;
-        case SpecialMove.CASTLE_QUEENSIDE:
+        case CastleQueensideFlag:
           Logger.log(Logger.CASTLING, "Castling Queenside");
           const rookPosQueenside = shiftPos(move.end, 0, -2);
           const rookQueenside = getPiece(rookPosQueenside, this.board);
           setPiece(rookPosQueenside, 0, this.board);
           setPiece(shiftPos(move.end, 0, 1), rookQueenside, this.board);
           break;
-        case SpecialMove.EN_PASSANT:
+        case EnPassantFlag:
           Logger.log(Logger.GAME, `En Passant at ${move.end}`);
           const direction = this.board.toMove === WHITE ? 1 : -1;
           const removePieceAt = shiftPos(move.end, -direction, 0);
           setPiece(removePieceAt, 0, this.board);
           break;
-        case SpecialMove.PROMOTION:
+        case PromoteToQueenFlag:
           setPiece(
             move.end,
             (this.promotionPiece | getColor(piece)) as Piece,
@@ -233,13 +243,13 @@ export class Game {
           );
           this.promotionPiece = QUEEN; // default promotion type
           break;
-        case SpecialMove.OPEN_TO_EN_PASSANT:
+        case PawnDoublePushFlag:
           this.board.enPassant = this.#calcEnPassantSquare(
             move.start,
             move.end
           );
           break;
-        case SpecialMove.COULD_BREAK_CASTLE_RIGHTS:
+        case BreaksCastlingRightsFlag:
           Logger.log(
             Logger.CASTLING,
             `This move is breaking some castling rights`
@@ -263,18 +273,22 @@ export class Game {
           break;
         default:
           throw new MoveError(
-            "The following special move has no defined behaviour: " +
-              move.special
+            "The following special move has no defined behaviour: " + move.flag
           );
       }
     }
     nextTurn(this.board);
+
     const playerTypeToMove =
       this.board.toMove === WHITE ? this.playerTypeWhite : this.playerTypeBlack;
     if (playerTypeToMove === PlayerType.BOT) {
       this.callWhenBotToMove();
+      this.lastMoveStart = null;
+      this.lastMoveEnd = null;
+    } else {
+      this.lastMoveStart = move.start;
+      this.lastMoveEnd = move.end;
     }
-    nextTurn(this.board);
   }
 
   /**

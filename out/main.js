@@ -14,8 +14,8 @@ function main() {
  */
 function startGame() {
     let game = new Game(PlayerType.HUMAN, PlayerType.BOT);
+    startUpdatingBotCommands(game);
     startUpdatingDrawing(game);
     startUpdatingInput(game);
-    startUpdatingBotCommands(game);
 }
 window.addEventListener("load", main);

@@ -4,6 +4,17 @@ import { EMPTY_PIECE, getColor, KING } from "../piece.js";
 import { copyBoard } from "../utils.js";
 import { canCastleKingside, canCastleQueenside } from "./castling.js";
 import { getRawMoves } from "./raw.js";
+// DATA DEFINITIONS
+export const NoFlag = 0;
+export const EnPassantFlag = 1;
+export const CastleKingsideFlag = 2;
+export const CastleQueensideFlag = 3;
+export const PromoteToQueenFlag = 4;
+export const PromoteToRookFlag = 5;
+export const PromoteToBishopFlag = 6;
+export const PromoteToKnightFlag = 7;
+export const PawnDoublePushFlag = 8;
+export const BreaksCastlingRightsFlag = 9;
 /**
  * A special type of chess move.
  *
@@ -13,15 +24,14 @@ import { getRawMoves } from "./raw.js";
  * This will let the game know what to do if it encounters a move that requires multiple
  * pieces to move ect.
  */
-export var SpecialMove;
-(function (SpecialMove) {
-    SpecialMove[SpecialMove["CASTLE_KINGSIDE"] = 0] = "CASTLE_KINGSIDE";
-    SpecialMove[SpecialMove["CASTLE_QUEENSIDE"] = 1] = "CASTLE_QUEENSIDE";
-    SpecialMove[SpecialMove["EN_PASSANT"] = 2] = "EN_PASSANT";
-    SpecialMove[SpecialMove["OPEN_TO_EN_PASSANT"] = 3] = "OPEN_TO_EN_PASSANT";
-    SpecialMove[SpecialMove["PROMOTION"] = 4] = "PROMOTION";
-    SpecialMove[SpecialMove["COULD_BREAK_CASTLE_RIGHTS"] = 5] = "COULD_BREAK_CASTLE_RIGHTS";
-})(SpecialMove || (SpecialMove = {}));
+// export enum SpecialMove {
+//   CASTLE_KINGSIDE,
+//   CASTLE_QUEENSIDE,
+//   EN_PASSANT,
+//   OPEN_TO_EN_PASSANT,
+//   PROMOTION,
+//   COULD_BREAK_CASTLE_RIGHTS,
+// }
 // PUBLIC FUNCTION DEFINITIONS
 /**
  * LEGAL moves that if played would not put the players king in check.
@@ -51,9 +61,9 @@ export function isKingInCheck(board) {
             const pos = makePos(rankNum, fileNum);
             const piece = getPiece(pos, board);
             if (piece !== EMPTY_PIECE && getColor(piece) !== board.toMove) {
-                const moves = getRawMoves(pos, boardCopy);
-                for (let index = 0; index < moves.length; index++) {
-                    if (moves[index].end === kingsPos) {
+                const attacks = getRawMoves(pos, boardCopy);
+                for (let index = 0; index < attacks.length; index++) {
+                    if (attacks[index].end === kingsPos) {
                         return true;
                     }
                 }
@@ -103,10 +113,10 @@ export function noMovesPlayable(board) {
  * Throws BoardStateError if a board with an invalid mailbox is passed.
  */
 function isLegalMove(move, board) {
-    if (move.special === SpecialMove.CASTLE_KINGSIDE) {
+    if (move.flag === CastleKingsideFlag) {
         return canCastleKingside(board);
     }
-    if (move.special == SpecialMove.CASTLE_QUEENSIDE) {
+    if (move.flag == CastleQueensideFlag) {
         return canCastleQueenside(board);
     }
     let newBoard = copyBoard(board);

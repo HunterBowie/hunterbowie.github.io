@@ -100,14 +100,11 @@ export function drawText(
 function resize() {
   const ctx = getContext();
   const canvas = getCanvas();
-  const infoBar = document.getElementById("info-bar") as HTMLElement;
 
   const size =
     Math.min(window.innerWidth, window.innerHeight - 20) - CANVAS_MARGIN;
 
   const dpr = window.devicePixelRatio || 1;
-
-  infoBar.style.width = `${size}px`;
 
   // Set internal resolution
   canvas.width = size * dpr;

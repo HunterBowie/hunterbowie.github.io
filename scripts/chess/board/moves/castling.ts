@@ -248,7 +248,7 @@ function isUnderAttack(spots: Pos[], board: Board): boolean {
       const pos = makePos(rankNum, fileNum);
       const piece = getPiece(pos, board);
       if (piece !== EMPTY_PIECE && getColor(piece) !== board.toMove) {
-        const moves = getRawMoves(pos, boardCopy).filter((move) => move.attack);
+        const moves = getRawMoves(pos, boardCopy, true);
         for (let index = 0; index < moves.length; index++) {
           const move = moves[index];
           for (let spot of spots) {
