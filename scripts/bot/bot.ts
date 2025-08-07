@@ -12,7 +12,7 @@ export function startUpdatingBotCommands(game: Game) {
       go.run(result.instance);
       game.onBotToMove(() => {
         setTimeout(() => {
-          console.log("SENDING: " + getFEN(game.board));
+          console.log("SENDING: " + "'" + getFEN(game.board) + "'");
 
           const data: string = (window as any).GetBotMove(
             "classic",
@@ -26,7 +26,7 @@ export function startUpdatingBotCommands(game: Game) {
           const rawMove = parts[0];
           const flag = Number(parts[1]);
 
-          console.log("RECIEVED: " + data);
+          console.log("RECIEVED: " + "'" + data + "'");
 
           const move: Move = {
             start: rawMove.slice(0, 2) as Pos,

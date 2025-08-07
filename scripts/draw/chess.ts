@@ -16,7 +16,6 @@ import {
   LIGHT_SQUARE,
   SPECIAL_ORANGE,
   SPECIAL_PURPLE,
-  SPECIAL_YELLOW,
 } from "../constants.js";
 import {
   drawRect,
@@ -92,13 +91,13 @@ function drawHighlightedBoardTiles(game: Game) {
   if (game.isHoldingPiece()) {
     drawTileWithColor(game.held.home, SPECIAL_PURPLE);
     game.held.moves.forEach((move, _) => {
-      drawTileWithColor(move.end, SPECIAL_YELLOW);
+      drawTileWithColor(move.end, SPECIAL_PURPLE);
     });
   }
   if (game.hasSelectedPiece()) {
     drawTileWithColor(game.selected.pos, SPECIAL_PURPLE);
     game.selected.moves.forEach((move, _) => {
-      drawTileWithColor(move.end, SPECIAL_YELLOW);
+      drawTileWithColor(move.end, SPECIAL_PURPLE);
     });
   }
   if (DEBUG) {
