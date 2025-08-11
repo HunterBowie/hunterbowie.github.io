@@ -1,5 +1,5 @@
 import { BLACK } from "../chess/board/piece.js";
-import { CANVAS_MARGIN, CHESS_BOARD_ID } from "../constants.js";
+import { CANVAS_MARGIN, CHESS_BOARD_ID, TOP_PANEL_HEIGHT, } from "../constants.js";
 import { getCanvasWidth } from "./utils.js";
 const pieceNames = ["pawn", "bishop", "knight", "rook", "queen", "king"];
 export let pieceImages = {};
@@ -59,9 +59,12 @@ export function drawRect(color, x, y, width, height) {
 /**
  * Draws black text with the given font size to the context.
  */
-export function drawText(text, xCenter, yCenter, fontSize) {
+export function drawText(text, xCenter, yCenter, fontSize, bold = false) {
     const ctx = getContext();
     ctx.font = `${fontSize}px Verdana`;
+    if (bold) {
+        ctx.font = "bold " + ctx.font;
+    }
     ctx.fillStyle = "black";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -73,14 +76,17 @@ export function drawText(text, xCenter, yCenter, fontSize) {
 function resize() {
     const ctx = getContext();
     const canvas = getCanvas();
-    const size = Math.min(window.innerWidth, window.innerHeight - 20) - CANVAS_MARGIN;
+    const min = Math.min(window.innerWidth, window.innerHeight - 20) - CANVAS_MARGIN;
+    // if window.innerHeight > window.innerWidth
+    const height = min;
+    const width = min - TOP_PANEL_HEIGHT;
     const dpr = window.devicePixelRatio || 1;
     // Set internal resolution
-    canvas.width = size * dpr;
-    canvas.height = size * dpr;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
     // Set CSS (display) size
-    canvas.style.width = `${size}px`;
-    canvas.style.height = `${size}px`;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
     // Scale context so all drawing uses CSS pixels
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }

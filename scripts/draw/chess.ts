@@ -8,6 +8,7 @@ import {
 import { EMPTY_PIECE } from "../chess/board/piece.js";
 import { Game } from "../chess/game.js";
 import {
+  BLACK,
   DARK_SQUARE,
   DEBUG,
   DEBUG_SQUARE,
@@ -16,6 +17,8 @@ import {
   LIGHT_SQUARE,
   SPECIAL_ORANGE,
   SPECIAL_PURPLE,
+  SPECIAL_YELLOW,
+  TOP_PANEL_HEIGHT,
 } from "../constants.js";
 import {
   drawRect,
@@ -31,12 +34,36 @@ import { calcXYCenter, getCanvasWidth } from "./utils.js";
  */
 export function startUpdatingDrawing(game: Game) {
   setInterval(() => {
+    drawTopPanel(game);
     drawBoardTiles();
     drawHighlightedBoardTiles(game);
     drawBoardPieces(game);
     drawHeldPiece(game);
     drawGameOverPanel(game);
   }, DRAW_DELAY);
+}
+
+/**
+ *
+ */
+function drawTopPanel(game: Game) {
+  const canvasWidth = getCanvasWidth();
+  drawRect(SPECIAL_YELLOW, 0, 0, canvasWidth, TOP_PANEL_HEIGHT);
+  drawRect(BLACK, 0, TOP_PANEL_HEIGHT - 1, canvasWidth, 1);
+
+  // display evaluation, bot type, moves played
+
+  const LABEL_HEIGHT = TOP_PANEL_HEIGHT / 3;
+  const VALUE_HEIGHT = LABEL_HEIGHT * 2;
+  const FONT_SIZE = 15;
+  const FIRST_X = Math.round(canvasWidth / 4);
+
+  drawText("Chess Bot", FIRST_X, LABEL_HEIGHT, FONT_SIZE, true);
+  drawText("Bot Evaluation", FIRST_X * 2, LABEL_HEIGHT, FONT_SIZE, true);
+  drawText("Moves", FIRST_X * 3, LABEL_HEIGHT, FONT_SIZE, true);
+  drawText("Classic Minimax", FIRST_X, VALUE_HEIGHT, FONT_SIZE);
+  drawText("-32.2", FIRST_X * 2, VALUE_HEIGHT, FONT_SIZE);
+  drawText("15", FIRST_X * 3, VALUE_HEIGHT, FONT_SIZE);
 }
 
 /**
@@ -132,7 +159,7 @@ function drawTileWithColor(pos: Pos, color: string) {
   drawRect(
     color,
     (getFileNumber(pos) - 1) * getSquareWidth(),
-    (8 - getRankNumber(pos)) * getSquareWidth(),
+    (8 - getRankNumber(pos)) * getSquareWidth() + TOP_PANEL_HEIGHT,
     getSquareWidth(),
     getSquareWidth()
   );
@@ -143,5 +170,11 @@ function drawTileWithColor(pos: Pos, color: string) {
  */
 export function drawPieceImage(piece: number, x: number, y: number) {
   const squareWidth = getSquareWidth();
-  getContext().drawImage(pieceImages[piece], x, y, squareWidth, squareWidth);
+  getContext().drawImage(
+    pieceImages[piece],
+    x,
+    y + TOP_PANEL_HEIGHT,
+    squareWidth,
+    squareWidth
+  );
 }

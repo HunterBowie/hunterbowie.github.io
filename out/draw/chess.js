@@ -1,6 +1,6 @@
 import { getFileNumber, getPiece, getRankNumber, makePos, } from "../chess/board/core.js";
 import { EMPTY_PIECE } from "../chess/board/piece.js";
-import { DARK_SQUARE, DEBUG, DEBUG_SQUARE, DRAW_DELAY, END_PANEL_BLACK, LIGHT_SQUARE, SPECIAL_ORANGE, SPECIAL_PURPLE, } from "../constants.js";
+import { BLACK, DARK_SQUARE, DEBUG, DEBUG_SQUARE, DRAW_DELAY, END_PANEL_BLACK, LIGHT_SQUARE, SPECIAL_ORANGE, SPECIAL_PURPLE, SPECIAL_YELLOW, TOP_PANEL_HEIGHT, } from "../constants.js";
 import { drawRect, drawText, getContext, getSquareWidth, pieceImages, } from "./core.js";
 import { calcXYCenter, getCanvasWidth } from "./utils.js";
 /**
@@ -8,12 +8,32 @@ import { calcXYCenter, getCanvasWidth } from "./utils.js";
  */
 export function startUpdatingDrawing(game) {
     setInterval(() => {
+        drawTopPanel(game);
         drawBoardTiles();
         drawHighlightedBoardTiles(game);
         drawBoardPieces(game);
         drawHeldPiece(game);
         drawGameOverPanel(game);
     }, DRAW_DELAY);
+}
+/**
+ *
+ */
+function drawTopPanel(game) {
+    const canvasWidth = getCanvasWidth();
+    drawRect(SPECIAL_YELLOW, 0, 0, canvasWidth, TOP_PANEL_HEIGHT);
+    drawRect(BLACK, 0, TOP_PANEL_HEIGHT - 1, canvasWidth, 1);
+    // display evaluation, bot type, moves played
+    const LABEL_HEIGHT = TOP_PANEL_HEIGHT / 3;
+    const VALUE_HEIGHT = LABEL_HEIGHT * 2;
+    const FONT_SIZE = 15;
+    const FIRST_X = Math.round(canvasWidth / 4);
+    drawText("Chess Bot", FIRST_X, LABEL_HEIGHT, FONT_SIZE, true);
+    drawText("Bot Evaluation", FIRST_X * 2, LABEL_HEIGHT, FONT_SIZE, true);
+    drawText("Moves", FIRST_X * 3, LABEL_HEIGHT, FONT_SIZE, true);
+    drawText("Classic Minimax", FIRST_X, VALUE_HEIGHT, FONT_SIZE);
+    drawText("-32.2", FIRST_X * 2, VALUE_HEIGHT, FONT_SIZE);
+    drawText("15", FIRST_X * 3, VALUE_HEIGHT, FONT_SIZE);
 }
 /**
  * Draws the opaque panal over the chess board when the game ends.
@@ -91,12 +111,12 @@ function drawHeldPiece(game) {
  * Draws a tile with the given color at the given position)
  */
 function drawTileWithColor(pos, color) {
-    drawRect(color, (getFileNumber(pos) - 1) * getSquareWidth(), (8 - getRankNumber(pos)) * getSquareWidth(), getSquareWidth(), getSquareWidth());
+    drawRect(color, (getFileNumber(pos) - 1) * getSquareWidth(), (8 - getRankNumber(pos)) * getSquareWidth() + TOP_PANEL_HEIGHT, getSquareWidth(), getSquareWidth());
 }
 /**
  * Draws an image to the context (better for a single image).
  */
 export function drawPieceImage(piece, x, y) {
     const squareWidth = getSquareWidth();
-    getContext().drawImage(pieceImages[piece], x, y, squareWidth, squareWidth);
+    getContext().drawImage(pieceImages[piece], x, y + TOP_PANEL_HEIGHT, squareWidth, squareWidth);
 }

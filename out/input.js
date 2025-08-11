@@ -1,5 +1,6 @@
 import { makePos } from "./chess/board/core.js";
 import { BISHOP, KNIGHT, QUEEN, ROOK } from "./chess/board/piece.js";
+import { TOP_PANEL_HEIGHT } from "./constants.js";
 import { getCanvas, getSquareWidth } from "./draw/core.js";
 import { Logger } from "./logger.js";
 /**
@@ -8,7 +9,7 @@ import { Logger } from "./logger.js";
 function getMousePoint(event) {
     const rect = getCanvas().getBoundingClientRect();
     const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const y = event.clientY - rect.top - TOP_PANEL_HEIGHT;
     return { x: x, y: y };
 }
 /**

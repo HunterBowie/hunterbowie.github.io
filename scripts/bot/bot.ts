@@ -35,6 +35,7 @@ export function startUpdatingBotCommands(game: Game) {
           };
 
           game.playMove(move);
+
         }, 100);
       });
     }

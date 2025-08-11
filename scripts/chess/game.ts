@@ -209,7 +209,12 @@ export class Game {
    */
   playMove(move: Move) {
     this.board.enPassant = null;
+    let pawnOrCapture = false;
     const piece = getPiece(move.start, this.board);
+    const endPiece = getPiece(move.end, this.board);
+    if (getType(piece) == PAWN || endPiece != EMPTY_PIECE) {
+        pawnOrCapture = true;
+    }
     setPiece(move.start, 0, this.board);
     setPiece(move.end, piece, this.board);
     if (move.flag !== NoFlag) {
@@ -278,6 +283,13 @@ export class Game {
       }
     }
     nextTurn(this.board);
+
+    this.board.numFullMoves += 1
+    if (!pawnOrCapture) {
+        this.board.numHalfMoves += 1
+    } else {
+        this.board.numHalfMoves = 0
+    }
 
     const playerTypeToMove =
       this.board.toMove === WHITE ? this.playerTypeWhite : this.playerTypeBlack;
