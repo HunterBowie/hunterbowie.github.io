@@ -1,6 +1,7 @@
 import { getFEN, Pos } from "../chess/board/core.js";
 import { Move } from "../chess/board/moves/core.js";
 import { Game } from "../chess/game.js";
+import { setEvalBar } from "../util.js";
 
 const go = new (window as any).Go();
 
@@ -36,6 +37,13 @@ export function startUpdatingBotCommands(game: Game) {
 
           game.playMove(move);
 
+          const evalRaw: string = (window as any).GetBotEval(
+            "classic",
+            0,
+            getFEN(game.board)
+          );
+
+          setEvalBar(-2000, 2000, Number(evalRaw));
         }, 100);
       });
     }

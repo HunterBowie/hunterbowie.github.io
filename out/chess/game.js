@@ -6,6 +6,7 @@ import { assertBoardInvariant } from "./board/invariant.js";
 import { removeAllCastlingRights, removeKingsideCastlingRights, removeQueensideCastlingRights, } from "./board/moves/castling.js";
 import { BreaksCastlingRightsFlag, CastleKingsideFlag, CastleQueensideFlag, EnPassantFlag, getMoves, isKingInCheck, NoFlag, noMovesPlayable, PawnDoublePushFlag, PromoteToQueenFlag, } from "./board/moves/core.js";
 import { BLACK, EMPTY_PIECE, getColor, getType, isWhite, KING, PAWN, QUEEN, WHITE, } from "./board/piece.js";
+import { copyBoard } from "./board/utils.js";
 export var PlayerType;
 (function (PlayerType) {
     PlayerType[PlayerType["BOT"] = 0] = "BOT";
@@ -27,10 +28,16 @@ export class Game {
     playerTypeWhite;
     playerTypeBlack;
     callWhenBotToMove;
+    previousBoardState;
+    previousLastMoveStart;
+    previousLastMoveEnd;
     constructor(whiteType, blackType) {
         this.playerTypeWhite = whiteType;
         this.playerTypeBlack = blackType;
         this.board = loadBoardFromFEN(STARTING_FEN);
+        this.previousBoardState = copyBoard(this.board);
+        this.previousLastMoveStart = null;
+        this.previousLastMoveEnd = null;
         this.selected = null;
         this.held = null;
         this.lastMoveStart = null;
@@ -114,10 +121,26 @@ export class Game {
         return false;
     }
     /**
+     * Undoes the previous move by returning the board
+     * to its previous state.
+     */
+    undoMove() {
+        if (this.isHoldingPiece()) {
+            return;
+        }
+        this.lastMoveStart = this.previousLastMoveStart;
+        this.lastMoveEnd = this.previousLastMoveEnd;
+        this.board = this.previousBoardState;
+    }
+    /**
      * Plays the given move on the board and advances the turn.
      * Requires the move to be legal and valid.
      */
     playMove(move) {
+        if (this.board.toMove == BLACK) {
+            this.board.numFullMoves += 1;
+        }
+        const oldBoard = copyBoard(this.board);
         this.board.enPassant = null;
         let pawnOrCapture = false;
         const piece = getPiece(move.start, this.board);
@@ -180,7 +203,6 @@ export class Game {
             }
         }
         nextTurn(this.board);
-        this.board.numFullMoves += 1;
         if (!pawnOrCapture) {
             this.board.numHalfMoves += 1;
         }
@@ -189,6 +211,9 @@ export class Game {
         }
         const playerTypeToMove = this.board.toMove === WHITE ? this.playerTypeWhite : this.playerTypeBlack;
         if (playerTypeToMove === PlayerType.BOT) {
+            this.previousBoardState = copyBoard(oldBoard);
+            this.previousLastMoveStart = this.lastMoveStart;
+            this.previousLastMoveEnd = this.lastMoveEnd;
             this.callWhenBotToMove();
             this.lastMoveStart = null;
             this.lastMoveEnd = null;

@@ -47,10 +47,22 @@ function getMousePos(event: MouseEvent): Pos | null {
   }
 }
 
+
+/**
+ * Adds button functionality.
+ */
+function setupButtons(game: Game) {
+  const undoButton = document.getElementById("undo-btn");
+  undoButton.addEventListener("click", (_) => {
+    game.undoMove();
+  });
+}
+
 /**
  * Starts the process of updating the game based on user input.
  */
 export function startUpdatingInput(game: Game) {
+  setupButtons(game);
   const keysPressed = new Set<string>();
   const promotionKeys = ["r", "k", "b", "q"];
   const promotionTypes = [ROOK, KNIGHT, BISHOP, QUEEN];

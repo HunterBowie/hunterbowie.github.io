@@ -27,17 +27,15 @@
                 <div class="card">
                     <div class="card-header"><b>Moves</b></div>
                     <div class="card-body">
-                        <p class="card-text">25</p>
+                        <p id="moves-count" class="card-text">25</p>
                     </div>
                 </div>
             </div>
         </div>
         <div class="row g-0">
-            <div class="progress my-2" role="progressbar" aria-label="Success example" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
-                <div class="progress-bar text-bg-success w-75" 
-                data-bs-toggle="tooltip"
-                data-bs-placement="top"
-                title="Engine Evaluation">45</div>
+            <div id="eval-bar-out" class="progress my-2" role="progressbar" aria-label="Success example" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">
+                <div id="eval-bar-in" class="progress-bar text-bg-success" style="width: 50%"
+                data-bs-toggle="tooltip" data-bs-placement="top" title="Engine Evaluation">0</div>
             </div>
         </div>
         <div class="row g-0">
@@ -47,7 +45,7 @@
         <div class="row g-0">
             <!-- Buttons -->
              <div class="col d-flex justify-content-center">
-                 <button class="btn btn-dark">Undo Move</button>
+                 <button id="undo-btn" class="btn btn-dark">Undo Move</button>
              </div>
              <div class="col d-flex justify-content-center">
                  <button class="btn btn-dark">New Game</button>

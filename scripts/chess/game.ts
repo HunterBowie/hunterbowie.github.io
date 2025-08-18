@@ -46,6 +46,7 @@ import {
   QUEEN,
   WHITE,
 } from "./board/piece.js";
+import { copyBoard } from "./board/utils.js";
 
 /**
  * Repersents a point on the window.
@@ -103,11 +104,17 @@ export class Game {
   playerTypeWhite: PlayerType;
   playerTypeBlack: PlayerType;
   callWhenBotToMove: () => void;
+  previousBoardState: Board;
+  previousLastMoveStart: Pos | null;
+  previousLastMoveEnd: Pos | null;
 
   constructor(whiteType: PlayerType, blackType: PlayerType) {
     this.playerTypeWhite = whiteType;
     this.playerTypeBlack = blackType;
     this.board = loadBoardFromFEN(STARTING_FEN);
+    this.previousBoardState = copyBoard(this.board);
+    this.previousLastMoveStart = null;
+    this.previousLastMoveEnd = null;
     this.selected = null;
     this.held = null;
     this.lastMoveStart = null;
@@ -204,19 +211,42 @@ export class Game {
   }
 
   /**
+   * Undoes the previous move by returning the board
+   * to its previous state.
+   */
+  undoMove() {
+    if (this.isHoldingPiece()) {
+      return;
+    }
+    this.lastMoveStart = this.previousLastMoveStart;
+    this.lastMoveEnd = this.previousLastMoveEnd;
+    this.board = this.previousBoardState;
+  }
+
+  /**
    * Plays the given move on the board and advances the turn.
    * Requires the move to be legal and valid.
    */
   playMove(move: Move) {
+    if (this.board.toMove == BLACK) {
+      this.board.numFullMoves += 1;
+    }
+
+    const oldBoard = copyBoard(this.board);
+
     this.board.enPassant = null;
     let pawnOrCapture = false;
+
     const piece = getPiece(move.start, this.board);
     const endPiece = getPiece(move.end, this.board);
+
     if (getType(piece) == PAWN || endPiece != EMPTY_PIECE) {
-        pawnOrCapture = true;
+      pawnOrCapture = true;
     }
+
     setPiece(move.start, 0, this.board);
     setPiece(move.end, piece, this.board);
+
     if (move.flag !== NoFlag) {
       Logger.log(Logger.GAME, `Making a ${move.flag} move`);
       switch (move.flag) {
@@ -284,16 +314,18 @@ export class Game {
     }
     nextTurn(this.board);
 
-    this.board.numFullMoves += 1
     if (!pawnOrCapture) {
-        this.board.numHalfMoves += 1
+      this.board.numHalfMoves += 1;
     } else {
-        this.board.numHalfMoves = 0
+      this.board.numHalfMoves = 0;
     }
 
     const playerTypeToMove =
       this.board.toMove === WHITE ? this.playerTypeWhite : this.playerTypeBlack;
     if (playerTypeToMove === PlayerType.BOT) {
+      this.previousBoardState = copyBoard(oldBoard);
+      this.previousLastMoveStart = this.lastMoveStart;
+      this.previousLastMoveEnd = this.lastMoveEnd;
       this.callWhenBotToMove();
       this.lastMoveStart = null;
       this.lastMoveEnd = null;

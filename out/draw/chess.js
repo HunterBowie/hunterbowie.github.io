@@ -1,6 +1,6 @@
 import { getFileNumber, getPiece, getRankNumber, makePos, } from "../chess/board/core.js";
 import { EMPTY_PIECE } from "../chess/board/piece.js";
-import { BLACK, DARK_SQUARE, DEBUG, DEBUG_SQUARE, DRAW_DELAY, END_PANEL_BLACK, LIGHT_SQUARE, SPECIAL_ORANGE, SPECIAL_PURPLE, SPECIAL_YELLOW, TOP_PANEL_HEIGHT, } from "../constants.js";
+import { DARK_SQUARE, DEBUG, DEBUG_SQUARE, DRAW_DELAY, END_PANEL_BLACK, LIGHT_SQUARE, SPECIAL_ORANGE, SPECIAL_PURPLE, } from "../constants.js";
 import { drawRect, drawText, getContext, getSquareWidth, pieceImages, } from "./core.js";
 import { calcXYCenter, getCanvasWidth } from "./utils.js";
 /**
@@ -13,26 +13,15 @@ export function startUpdatingDrawing(game) {
         drawBoardPieces(game);
         drawHeldPiece(game);
         drawGameOverPanel(game);
+        updateInfoPanel(game);
     }, DRAW_DELAY);
 }
 /**
  *
  */
-function drawTopPanel(game) {
-    const canvasWidth = getCanvasWidth();
-    drawRect(SPECIAL_YELLOW, 0, 0, canvasWidth, TOP_PANEL_HEIGHT);
-    drawRect(BLACK, 0, TOP_PANEL_HEIGHT - 1, canvasWidth, 1);
-    // display evaluation, bot type, moves played
-    const LABEL_HEIGHT = TOP_PANEL_HEIGHT / 3;
-    const VALUE_HEIGHT = LABEL_HEIGHT * 2;
-    const FONT_SIZE = 15;
-    const FIRST_X = Math.round(canvasWidth / 4);
-    drawText("Chess Bot", FIRST_X, LABEL_HEIGHT, FONT_SIZE, true);
-    drawText("Bot Evaluation", FIRST_X * 2, LABEL_HEIGHT, FONT_SIZE, true);
-    drawText("Moves", FIRST_X * 3, LABEL_HEIGHT, FONT_SIZE, true);
-    drawText("Classic Minimax", FIRST_X, VALUE_HEIGHT, FONT_SIZE);
-    drawText("-32.2", FIRST_X * 2, VALUE_HEIGHT, FONT_SIZE);
-    drawText("15", FIRST_X * 3, VALUE_HEIGHT, FONT_SIZE);
+function updateInfoPanel(game) {
+    const movesElement = document.getElementById("moves-count");
+    movesElement.innerHTML = String(game.board.numFullMoves);
 }
 /**
  * Draws the opaque panal over the chess board when the game ends.
