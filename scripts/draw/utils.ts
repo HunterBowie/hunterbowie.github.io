@@ -13,5 +13,5 @@ export function getCanvasWidth(): number {
  * Returns the center x and y value on the canvas.
  */
 export function calcXYCenter(): number {
-    return getCanvasWidth() / 2;
+  return getCanvasWidth() / 2;
 }
