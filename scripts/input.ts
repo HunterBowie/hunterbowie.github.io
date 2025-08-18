@@ -47,13 +47,15 @@ function getMousePos(event: MouseEvent): Pos | null {
   }
 }
 
-
 /**
  * Adds button functionality.
  */
 function setupButtons(game: Game) {
   const undoButton = document.getElementById("undo-btn");
   undoButton.addEventListener("click", (_) => {
+    game.undoMove();
+  });
+  undoButton.addEventListener("touchend", (_) => {
     game.undoMove();
   });
 }
