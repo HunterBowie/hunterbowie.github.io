@@ -1,36 +1,21 @@
 
 body {
-    margin: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
 }
 
-#container {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
 
-#nested-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.card {
+    height: 100px;
+    overflow: hidden;
 }
 
 button {
     margin: 10px;
-    /* width: 75px; */
-    /* height: 50px; */
-    /* background-color: rgb(203, 201, 154); */
-    /* border-radius: 10px; */
-    /* color: black; */
 }
 
 
 canvas {
-    display: block;
     border: 1px solid black;
-    margin: 0;
 }

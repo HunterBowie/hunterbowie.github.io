@@ -34,7 +34,6 @@ import { calcXYCenter, getCanvasWidth } from "./utils.js";
  */
 export function startUpdatingDrawing(game: Game) {
   setInterval(() => {
-    drawTopPanel(game);
     drawBoardTiles();
     drawHighlightedBoardTiles(game);
     drawBoardPieces(game);
@@ -159,7 +158,7 @@ function drawTileWithColor(pos: Pos, color: string) {
   drawRect(
     color,
     (getFileNumber(pos) - 1) * getSquareWidth(),
-    (8 - getRankNumber(pos)) * getSquareWidth() + TOP_PANEL_HEIGHT,
+    (8 - getRankNumber(pos)) * getSquareWidth(),
     getSquareWidth(),
     getSquareWidth()
   );
@@ -170,11 +169,5 @@ function drawTileWithColor(pos: Pos, color: string) {
  */
 export function drawPieceImage(piece: number, x: number, y: number) {
   const squareWidth = getSquareWidth();
-  getContext().drawImage(
-    pieceImages[piece],
-    x,
-    y + TOP_PANEL_HEIGHT,
-    squareWidth,
-    squareWidth
-  );
+  getContext().drawImage(pieceImages[piece], x, y, squareWidth, squareWidth);
 }

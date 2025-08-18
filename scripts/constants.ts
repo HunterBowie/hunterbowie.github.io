@@ -14,7 +14,8 @@ export const BLACK = "rgb(0, 0, 0)";
 export const END_PANEL_BLACK = "rgba(108, 148, 137, 0.75)";
 
 export const CHESS_BOARD_ID = "chess-board";
-export const CANVAS_MARGIN = 50;
+export const CANVAS_MARGIN_X = 20;
+export const CANVAS_MARGIN_Y = 200;
 
 export const TOP_PANEL_HEIGHT = 60;
 

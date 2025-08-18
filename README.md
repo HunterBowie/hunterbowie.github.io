@@ -97,3 +97,14 @@ Creating a website to interact with several custom built chess engines.
 and all other castling rules are obeyed
 - implement final rules of the game such as promotion, game over checks, stalemate checks and so on
 
+
+
+
+# Things to Display
+
+## For play
+- number of moves
+- bot difficulty level
+- type of bot
+- evalutation score
+

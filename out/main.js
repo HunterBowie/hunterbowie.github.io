@@ -1,8 +1,8 @@
+import { startUpdatingBotCommands } from "./bot/bot.js";
 import { Game, PlayerType } from "./chess/game.js";
 import { startUpdatingDrawing } from "./draw/chess.js";
 import { initDraw } from "./draw/core.js";
 import { startUpdatingInput } from "./input.js";
-import { startUpdatingBotCommands } from "./bot/bot.js";
 /**
  * Runs the initialization of the window.
  */

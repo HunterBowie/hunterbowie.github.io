@@ -1,8 +1,8 @@
 import { BLACK } from "../chess/board/piece.js";
 import {
-  CANVAS_MARGIN,
+  CANVAS_MARGIN_X,
+  CANVAS_MARGIN_Y,
   CHESS_BOARD_ID,
-  TOP_PANEL_HEIGHT,
 } from "../constants.js";
 import { getCanvasWidth } from "./utils.js";
 
@@ -109,12 +109,13 @@ function resize() {
   const ctx = getContext();
   const canvas = getCanvas();
 
-  const min =
-    Math.min(window.innerWidth, window.innerHeight - 20) - CANVAS_MARGIN;
+  const size = Math.min(
+    window.innerWidth - CANVAS_MARGIN_X,
+    window.innerHeight - CANVAS_MARGIN_Y
+  );
 
-  // if window.innerHeight > window.innerWidth
-  const height = min;
-  const width = min - TOP_PANEL_HEIGHT;
+  const height = size;
+  const width = size;
 
   const dpr = window.devicePixelRatio || 1;
 
@@ -128,4 +129,7 @@ function resize() {
 
   // Scale context so all drawing uses CSS pixels
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const wrapper = document.getElementById("dynamic-wrapper");
+  wrapper.style.width = canvas.style.width;
 }

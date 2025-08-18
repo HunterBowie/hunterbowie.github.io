@@ -8,7 +8,6 @@ import { calcXYCenter, getCanvasWidth } from "./utils.js";
  */
 export function startUpdatingDrawing(game) {
     setInterval(() => {
-        drawTopPanel(game);
         drawBoardTiles();
         drawHighlightedBoardTiles(game);
         drawBoardPieces(game);
@@ -111,12 +110,12 @@ function drawHeldPiece(game) {
  * Draws a tile with the given color at the given position)
  */
 function drawTileWithColor(pos, color) {
-    drawRect(color, (getFileNumber(pos) - 1) * getSquareWidth(), (8 - getRankNumber(pos)) * getSquareWidth() + TOP_PANEL_HEIGHT, getSquareWidth(), getSquareWidth());
+    drawRect(color, (getFileNumber(pos) - 1) * getSquareWidth(), (8 - getRankNumber(pos)) * getSquareWidth(), getSquareWidth(), getSquareWidth());
 }
 /**
  * Draws an image to the context (better for a single image).
  */
 export function drawPieceImage(piece, x, y) {
     const squareWidth = getSquareWidth();
-    getContext().drawImage(pieceImages[piece], x, y + TOP_PANEL_HEIGHT, squareWidth, squareWidth);
+    getContext().drawImage(pieceImages[piece], x, y, squareWidth, squareWidth);
 }

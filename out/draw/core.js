@@ -1,5 +1,5 @@
 import { BLACK } from "../chess/board/piece.js";
-import { CANVAS_MARGIN, CHESS_BOARD_ID, TOP_PANEL_HEIGHT, } from "../constants.js";
+import { CANVAS_MARGIN_X, CANVAS_MARGIN_Y, CHESS_BOARD_ID, } from "../constants.js";
 import { getCanvasWidth } from "./utils.js";
 const pieceNames = ["pawn", "bishop", "knight", "rook", "queen", "king"];
 export let pieceImages = {};
@@ -76,10 +76,9 @@ export function drawText(text, xCenter, yCenter, fontSize, bold = false) {
 function resize() {
     const ctx = getContext();
     const canvas = getCanvas();
-    const min = Math.min(window.innerWidth, window.innerHeight - 20) - CANVAS_MARGIN;
-    // if window.innerHeight > window.innerWidth
-    const height = min;
-    const width = min - TOP_PANEL_HEIGHT;
+    const size = Math.min(window.innerWidth - CANVAS_MARGIN_X, window.innerHeight - CANVAS_MARGIN_Y);
+    const height = size;
+    const width = size;
     const dpr = window.devicePixelRatio || 1;
     // Set internal resolution
     canvas.width = width * dpr;
@@ -89,4 +88,6 @@ function resize() {
     canvas.style.height = `${height}px`;
     // Scale context so all drawing uses CSS pixels
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const wrapper = document.getElementById("dynamic-wrapper");
+    wrapper.style.width = canvas.style.width;
 }
