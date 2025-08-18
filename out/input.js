@@ -50,6 +50,9 @@ function setupButtons(game) {
     undoButton.addEventListener("click", (_) => {
         game.undoMove();
     });
+    undoButton.addEventListener("touchend", (_) => {
+        game.undoMove();
+    });
 }
 /**
  * Starts the process of updating the game based on user input.
