@@ -8,7 +8,6 @@ import { startUpdatingInput } from "./input.js";
  * Runs the initialization of the window.
  */
 function main() {
-    
   initDraw().then(startGame);
 }
 
@@ -16,6 +15,9 @@ function main() {
  * Begins the game.
  */
 function startGame() {
+  //   const whitePlayer = Math.round(Math.random());
+  //   const blackPlayer = 1 - whitePlayer;
+  //   let game = new Game(whitePlayer, blackPlayer);
   let game = new Game(PlayerType.HUMAN, PlayerType.BOT);
   startUpdatingBotCommands(game);
   startUpdatingDrawing(game);

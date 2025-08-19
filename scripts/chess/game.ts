@@ -123,9 +123,7 @@ export class Game {
     this.callWhenBotToMove = () => {};
     this.assertInvariant();
     // MUST MOVE TO A START() function called in main after bot setup
-    // if (this.playerTypeWhite === PlayerType.BOT) {
-    //   this.callWhenBotToMove();
-    // }
+    
   }
 
   /**

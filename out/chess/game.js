@@ -46,9 +46,6 @@ export class Game {
         this.callWhenBotToMove = () => { };
         this.assertInvariant();
         // MUST MOVE TO A START() function called in main after bot setup
-        // if (this.playerTypeWhite === PlayerType.BOT) {
-        //   this.callWhenBotToMove();
-        // }
     }
     /**
      * Sets up a function that will be called when the bot player starts its turn.

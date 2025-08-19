@@ -1,6 +1,6 @@
 import { getFEN, Pos } from "../chess/board/core.js";
 import { Move } from "../chess/board/moves/core.js";
-import { Game } from "../chess/game.js";
+import { Game, PlayerType } from "../chess/game.js";
 import { setEvalBar } from "../util.js";
 
 const go = new (window as any).Go();
@@ -8,8 +8,8 @@ const go = new (window as any).Go();
 // PUBLIC FUNCTION DEFINITIONS
 
 export function startUpdatingBotCommands(game: Game) {
-  WebAssembly.instantiateStreaming(fetch("go/main.wasm"), go.importObject).then(
-    async (result) => {
+  WebAssembly.instantiateStreaming(fetch("go/main.wasm"), go.importObject)
+    .then(async (result) => {
       go.run(result.instance);
       game.onBotToMove(() => {
         setTimeout(() => {
@@ -18,7 +18,7 @@ export function startUpdatingBotCommands(game: Game) {
           const data: string = (window as any).GetBotMove(
             "classic",
             0,
-            1000,
+            2000,
             getFEN(game.board)
           );
 
@@ -46,6 +46,11 @@ export function startUpdatingBotCommands(game: Game) {
           setEvalBar(-2000, 2000, Number(evalRaw));
         }, 100);
       });
-    }
-  );
+    })
+    .then((result) => {
+      if (game.playerTypeWhite === PlayerType.BOT) {
+        game.callWhenBotToMove();
+        console.log("HER");
+      }
+    });
 }
