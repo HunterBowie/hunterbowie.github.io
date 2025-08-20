@@ -1,7 +1,9 @@
 import { makePos } from "./chess/board/core.js";
 import { BISHOP, KNIGHT, QUEEN, ROOK } from "./chess/board/piece.js";
 import { getCanvas, getSquareWidth } from "./draw/core.js";
+import { flipPos } from "./draw/utils.js";
 import { Logger } from "./logger.js";
+import { setEval } from "./util.js";
 /**
  * Get the mouse point of the event relative to the canvas.
  */
@@ -26,14 +28,18 @@ function isMousePointFocused(event) {
 /**
  * Get the mouse point of the event relative to the canvas.
  */
-function getMousePos(event) {
+function getMousePos(event, game) {
     const point = getMousePoint(event);
     const row = Math.floor(point.y / getSquareWidth());
     const col = Math.floor(point.x / getSquareWidth());
     const rankNum = 8 - row;
     const fileNum = col + 1;
     try {
-        return makePos(rankNum, fileNum);
+        const pos = makePos(rankNum, fileNum);
+        if (game.isFlipped()) {
+            return flipPos(pos);
+        }
+        return pos;
     }
     catch (error) {
         if (error instanceof RangeError) {
@@ -42,16 +48,28 @@ function getMousePos(event) {
         throw error;
     }
 }
+const undoButton = document.getElementById("undo-btn");
+const newGameButton = document.getElementById("new-game-btn");
+const evalLabel = document.getElementById("eval-label");
 /**
  * Adds button functionality.
  */
 function setupButtons(game) {
-    const undoButton = document.getElementById("undo-btn");
     undoButton.addEventListener("click", (_) => {
         game.undoMove();
     });
     undoButton.addEventListener("touchend", (_) => {
         game.undoMove();
+    });
+    function onNewGame() {
+        game.newGame();
+        setEval(0);
+    }
+    newGameButton.addEventListener("click", (_) => {
+        onNewGame();
+    });
+    newGameButton.addEventListener("touchend", (_) => {
+        onNewGame();
     });
 }
 /**
@@ -98,7 +116,7 @@ export function startUpdatingInput(game) {
             return;
         Logger.log(Logger.INPUT, `Mouse down ... determining whether its valid pos`);
         const point = getMousePoint(event);
-        const pos = getMousePos(event);
+        const pos = getMousePos(event, game);
         if (pos === null)
             return;
         Logger.log(Logger.INPUT, `Mouse down at ${pos}`);
@@ -132,7 +150,7 @@ export function startUpdatingInput(game) {
     window.addEventListener("pointerup", (event) => {
         if (game.isOver() || !game.isHumanPlayerToMove())
             return;
-        const pos = getMousePos(event);
+        const pos = getMousePos(event, game);
         if (pos === null) {
             if (game.isHoldingPiece()) {
                 game.returnHeldPiece();

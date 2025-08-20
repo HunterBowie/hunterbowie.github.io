@@ -1,3 +1,9 @@
+import {
+  getFileNumber,
+  getRankNumber,
+  makePos,
+  Pos,
+} from "../chess/board/core.js";
 import { getCanvas } from "./core.js";
 
 // PUBLIC FUNCTION DEFINITIONS
@@ -14,4 +20,14 @@ export function getCanvasWidth(): number {
  */
 export function calcXYCenter(): number {
   return getCanvasWidth() / 2;
+}
+
+/**
+ * Returns the flipped version of the chess position.
+ */
+export function flipPos(pos: Pos): Pos {
+  const rank = getRankNumber(pos);
+  const file = getFileNumber(pos);
+  const newRank = 9 - rank;
+  return makePos(newRank, file);
 }

@@ -1,14 +1,14 @@
 import { getFileNumber, getPiece, getRankNumber, makePos, } from "../chess/board/core.js";
 import { EMPTY_PIECE } from "../chess/board/piece.js";
-import { DARK_SQUARE, DEBUG, DEBUG_SQUARE, DRAW_DELAY, END_PANEL_BLACK, LIGHT_SQUARE, SPECIAL_ORANGE, SPECIAL_PURPLE, } from "../constants.js";
+import { DARK_SQUARE, DRAW_DELAY, END_PANEL_BLACK, LIGHT_SQUARE, SPECIAL_ORANGE, SPECIAL_PURPLE, } from "../constants.js";
 import { drawRect, drawText, getContext, getSquareWidth, pieceImages, } from "./core.js";
-import { calcXYCenter, getCanvasWidth } from "./utils.js";
+import { calcXYCenter, flipPos, getCanvasWidth } from "./utils.js";
 /**
  * Starts a process of updating the drawings.
  */
 export function startUpdatingDrawing(game) {
     setInterval(() => {
-        drawBoardTiles();
+        drawBoardTiles(game);
         drawHighlightedBoardTiles(game);
         drawBoardPieces(game);
         drawHeldPiece(game);
@@ -36,10 +36,13 @@ function drawGameOverPanel(game) {
 /**
  * Draws the chess board background.
  */
-function drawBoardTiles() {
+function drawBoardTiles(game) {
     for (let rankNum = 1; rankNum <= 8; rankNum++) {
         for (let fileNum = 1; fileNum <= 8; fileNum++) {
-            let color = (rankNum + fileNum) % 2 === 0 ? LIGHT_SQUARE : DARK_SQUARE;
+            let color = (rankNum + fileNum) % 2 !== 0 ? LIGHT_SQUARE : DARK_SQUARE;
+            if (game.isFlipped()) {
+                color = (rankNum + fileNum) % 2 === 0 ? LIGHT_SQUARE : DARK_SQUARE;
+            }
             drawTileWithColor(makePos(rankNum, fileNum), color);
         }
     }
@@ -51,7 +54,10 @@ function drawBoardPieces(game) {
     const squareWidth = getSquareWidth();
     for (let rankNum = 1; rankNum <= 8; rankNum++) {
         for (let fileNum = 1; fileNum <= 8; fileNum++) {
-            const pos = makePos(rankNum, fileNum);
+            let pos = makePos(rankNum, fileNum);
+            if (game.isFlipped()) {
+                pos = flipPos(pos);
+            }
             const piece = getPiece(pos, game.board);
             if (piece === EMPTY_PIECE) {
                 continue;
@@ -65,25 +71,44 @@ function drawBoardPieces(game) {
  */
 function drawHighlightedBoardTiles(game) {
     if (game.isHoldingPiece()) {
-        drawTileWithColor(game.held.home, SPECIAL_PURPLE);
+        let pos = game.held.home;
+        if (game.isFlipped()) {
+            pos = flipPos(pos);
+        }
+        drawTileWithColor(pos, SPECIAL_PURPLE);
         game.held.moves.forEach((move, _) => {
-            drawTileWithColor(move.end, SPECIAL_PURPLE);
+            let pos = move.end;
+            if (game.isFlipped()) {
+                pos = flipPos(pos);
+            }
+            drawTileWithColor(pos, SPECIAL_PURPLE);
         });
     }
     if (game.hasSelectedPiece()) {
-        drawTileWithColor(game.selected.pos, SPECIAL_PURPLE);
+        let pos = game.selected.pos;
+        if (game.isFlipped()) {
+            pos = flipPos(pos);
+        }
+        drawTileWithColor(pos, SPECIAL_PURPLE);
         game.selected.moves.forEach((move, _) => {
-            drawTileWithColor(move.end, SPECIAL_PURPLE);
-        });
-    }
-    if (DEBUG) {
-        game.debugSquares.forEach((pos, _) => {
-            drawTileWithColor(pos, DEBUG_SQUARE);
+            let pos = move.end;
+            if (game.isFlipped()) {
+                pos = flipPos(pos);
+            }
+            drawTileWithColor(pos, SPECIAL_PURPLE);
         });
     }
     if (game.lastMoveStart != null) {
-        drawTileWithColor(game.lastMoveStart, SPECIAL_ORANGE);
-        drawTileWithColor(game.lastMoveEnd, SPECIAL_ORANGE);
+        let pos = game.lastMoveStart;
+        if (game.isFlipped()) {
+            pos = flipPos(pos);
+        }
+        drawTileWithColor(pos, SPECIAL_ORANGE);
+        pos = game.lastMoveEnd;
+        if (game.isFlipped()) {
+            pos = flipPos(pos);
+        }
+        drawTileWithColor(pos, SPECIAL_ORANGE);
     }
 }
 /**

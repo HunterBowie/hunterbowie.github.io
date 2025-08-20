@@ -97,7 +97,6 @@ export class Game {
   board: Board;
   selected: Selected | null;
   held: Held | null;
-  debugSquares: Pos[];
   lastMoveStart: Pos | null;
   lastMoveEnd: Pos | null;
   promotionPiece: Piece = QUEEN;
@@ -111,19 +110,8 @@ export class Game {
   constructor(whiteType: PlayerType, blackType: PlayerType) {
     this.playerTypeWhite = whiteType;
     this.playerTypeBlack = blackType;
-    this.board = loadBoardFromFEN(STARTING_FEN);
-    this.previousBoardState = copyBoard(this.board);
-    this.previousLastMoveStart = null;
-    this.previousLastMoveEnd = null;
-    this.selected = null;
-    this.held = null;
-    this.lastMoveStart = null;
-    this.lastMoveEnd = null;
-    this.debugSquares = []; // used for highlighting chess squares for visual debug
     this.callWhenBotToMove = () => {};
-    this.assertInvariant();
-    // MUST MOVE TO A START() function called in main after bot setup
-    
+    this.newGame();
   }
 
   /**
@@ -331,6 +319,31 @@ export class Game {
       this.lastMoveStart = move.start;
       this.lastMoveEnd = move.end;
     }
+  }
+
+  /**
+   * Restarts the game by setting the board back to starting postition.
+   */
+  newGame() {
+    this.board = loadBoardFromFEN(STARTING_FEN);
+    this.previousBoardState = copyBoard(this.board);
+    this.previousLastMoveStart = null;
+    this.previousLastMoveEnd = null;
+    this.selected = null;
+    this.held = null;
+    this.lastMoveStart = null;
+    this.lastMoveEnd = null;
+    this.assertInvariant();
+    if (this.playerTypeWhite == PlayerType.BOT) {
+      this.callWhenBotToMove();
+    }
+  }
+
+  /**
+   * Returns true if the white player is a bot.
+   */
+  isFlipped(): boolean {
+    return this.playerTypeWhite == PlayerType.BOT;
   }
 
   /**

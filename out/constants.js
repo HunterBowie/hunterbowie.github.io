@@ -17,3 +17,5 @@ export const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq 
 export const DRAW_DELAY = 60 / 1000;
 export const DEBUG = true; // turns on invariant checks
 export const SERVER_URL = "http://localhost:2000/get_move/";
+export const EVAL_BAR_MIN = -1000;
+export const EVAL_BAR_MAX = 1000;

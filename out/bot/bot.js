@@ -1,6 +1,6 @@
 import { getFEN } from "../chess/board/core.js";
 import { PlayerType } from "../chess/game.js";
-import { setEvalBar } from "../util.js";
+import { setEval } from "../util.js";
 const go = new window.Go();
 // PUBLIC FUNCTION DEFINITIONS
 export function startUpdatingBotCommands(game) {
@@ -22,14 +22,13 @@ export function startUpdatingBotCommands(game) {
                 };
                 game.playMove(move);
                 const evalRaw = window.GetBotEval("classic", 0, getFEN(game.board));
-                setEvalBar(-2000, 2000, Number(evalRaw));
+                setEval(Number(evalRaw));
             }, 100);
         });
     })
         .then((result) => {
         if (game.playerTypeWhite === PlayerType.BOT) {
             game.callWhenBotToMove();
-            console.log("HER");
         }
     });
 }

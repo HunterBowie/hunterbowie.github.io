@@ -1,7 +1,7 @@
 import { getFEN, Pos } from "../chess/board/core.js";
 import { Move } from "../chess/board/moves/core.js";
 import { Game, PlayerType } from "../chess/game.js";
-import { setEvalBar } from "../util.js";
+import { setEval } from "../util.js";
 
 const go = new (window as any).Go();
 
@@ -43,14 +43,13 @@ export function startUpdatingBotCommands(game: Game) {
             getFEN(game.board)
           );
 
-          setEvalBar(-2000, 2000, Number(evalRaw));
+          setEval(Number(evalRaw));
         }, 100);
       });
     })
     .then((result) => {
       if (game.playerTypeWhite === PlayerType.BOT) {
         game.callWhenBotToMove();
-        console.log("HER");
       }
     });
 }
