@@ -5,22 +5,19 @@ Creating a website to interact with several custom built chess engines.
 ## Running Things
 
 - to run chess server: node server/server.js
-- to run website: tsc --watch 
-
-
+- to run website: tsc --watch
 
 # Day 1
 
 ### Things Done
 
-- created a rough structure for the project 
+- created a rough structure for the project
 - a basic website that is mostly made with chatgpt that allows frontend to communicate with backend that then runs a CPP file and returns the result
 
 ### Things To Do
 
 - learn about some of the tools/packages used
-- play around with the code to make it do more complicated things 
-
+- play around with the code to make it do more complicated things
 
 # Day 2
 
@@ -32,13 +29,11 @@ Creating a website to interact with several custom built chess engines.
 - started learning about javascript more and using jsdoc
 - managed to figure out how to do proper scaling with dpi (ie. chatgpt did)
 
-
 ### Things To Do
 
-- Need to figure out how to update the drawing every _ seconds
-- Need to get basic mouse interaction working 
+- Need to figure out how to update the drawing every \_ seconds
+- Need to get basic mouse interaction working
 - Need to make a board repersentation for the front end and some basic functionally to work with it (moving pieces)
-
 
 # Day 3
 
@@ -53,11 +48,9 @@ Creating a website to interact with several custom built chess engines.
 - Finish move legality implementation
 - Start to actually implement game logic and turns ect.
 - Get some kind of text to display scoreboard king of stuff like current turn,
- number of turns passed, piece score, computer eval score ect.
-
+  number of turns passed, piece score, computer eval score ect.
 
 ....
-
 
 # May 6th
 
@@ -68,14 +61,13 @@ Creating a website to interact with several custom built chess engines.
 
 # May 7th
 
-- The board interface is good. Keep it, don't make it into a class. 
+- The board interface is good. Keep it, don't make it into a class.
 - Decide what the standard notation for positions moves will be internally (within game) and externally (talking to the game class)
 - Refactor moves and board into one folder called "board" that splits up the various functions
 - Write out comments on the standards/terminology being used
-- Make all the functions within the board "package" robust 
+- Make all the functions within the board "package" robust
 - Make some simple tests for anything testable you find in board package
 - Flesh out the public interface for Game and how it will interact with engine
-
 
 # May 8th
 
@@ -85,26 +77,24 @@ Creating a website to interact with several custom built chess engines.
 - Flesh out the public interface for Game and how it will interact with engine
 - Add special moves
 
-
 # May 9th
+
 - Make game robust
 - Write some tests for the getLegalMoves function
 - Flesh out the public interface for Game and how it will interact with engine
 - Add special moves
 
 # May 16th
+
 - finish castling implementation so that queenside castling works
-and all other castling rules are obeyed
+  and all other castling rules are obeyed
 - implement final rules of the game such as promotion, game over checks, stalemate checks and so on
-
-
-
 
 # Things to Display
 
 ## For play
+
 - number of moves
 - bot difficulty level
 - type of bot
 - evalutation score
-
