@@ -1,100 +1,18 @@
-# Chess Engines
+# Chess Engine & GUI
 
-Creating a website to interact with several custom built chess engines.
+### Summary
 
-## Running Things
+I built a chess engine in Go with a front end GUI in TypeScript, HTML5, CSS, and bootstrap. Play against it [here](hunterbowie.github.io).
 
-- to run chess server: node server/server.js
-- to run website: tsc --watch
+<img width="1215" height="1307" alt="Screenshot 2025-08-26 at 11 48 22 AM" src="https://github.com/user-attachments/assets/f32dcbd9-993b-4cc3-a85a-40399ed834ba" />
 
-# Day 1
 
-### Things Done
+### Challenges
 
-- created a rough structure for the project
-- a basic website that is mostly made with chatgpt that allows frontend to communicate with backend that then runs a CPP file and returns the result
+- How to balance peformance and speed by optimizing chess engine search and evaluation capabilities
 
-### Things To Do
 
-- learn about some of the tools/packages used
-- play around with the code to make it do more complicated things
+### Things I Learned
 
-# Day 2
-
-### Things Done
-
-- got a board rendered to the website
-- got github pages working
-- got the whole canvas javascript thing figured out
-- started learning about javascript more and using jsdoc
-- managed to figure out how to do proper scaling with dpi (ie. chatgpt did)
-
-### Things To Do
-
-- Need to figure out how to update the drawing every \_ seconds
-- Need to get basic mouse interaction working
-- Need to make a board repersentation for the front end and some basic functionally to work with it (moving pieces)
-
-# Day 3
-
-### Things Done
-
-- Figured out piece move legality (except knight)
-- Color scheme and highlighting effect implementation
-- Organized javascript files more
-
-### Things To Do
-
-- Finish move legality implementation
-- Start to actually implement game logic and turns ect.
-- Get some kind of text to display scoreboard king of stuff like current turn,
-  number of turns passed, piece score, computer eval score ect.
-
-....
-
-# May 6th
-
-- Improve the coverage of the invariant for board (things like there being no king)
-- Begin writing a test suite for getMoves()
-- Flesh out the public interface for Game and how it will interact with engine
-- Add requires clauses to the nessesary functions
-
-# May 7th
-
-- The board interface is good. Keep it, don't make it into a class.
-- Decide what the standard notation for positions moves will be internally (within game) and externally (talking to the game class)
-- Refactor moves and board into one folder called "board" that splits up the various functions
-- Write out comments on the standards/terminology being used
-- Make all the functions within the board "package" robust
-- Make some simple tests for anything testable you find in board package
-- Flesh out the public interface for Game and how it will interact with engine
-
-# May 8th
-
-- Finish migrating the project over to using new position notation and board package
-- Make game robust
-- Write some tests for the getLegalMoves function
-- Flesh out the public interface for Game and how it will interact with engine
-- Add special moves
-
-# May 9th
-
-- Make game robust
-- Write some tests for the getLegalMoves function
-- Flesh out the public interface for Game and how it will interact with engine
-- Add special moves
-
-# May 16th
-
-- finish castling implementation so that queenside castling works
-  and all other castling rules are obeyed
-- implement final rules of the game such as promotion, game over checks, stalemate checks and so on
-
-# Things to Display
-
-## For play
-
-- number of moves
-- bot difficulty level
-- type of bot
-- evalutation score
+- How to research and implement optimizations for known problems
+- How to use tools like TypeScript and web assembly
