@@ -41,6 +41,9 @@ export class Game {
      */
     onBotToMove(func) {
         this.callWhenBotToMove = func;
+        if (this.board.toMove == WHITE && this.playerTypeWhite == PlayerType.BOT) {
+            this.callWhenBotToMove();
+        }
     }
     /**
      * Returns true if the human player is next to move.

@@ -1,34 +1,42 @@
 import { getFEN } from "../chess/board/core.js";
-import { PlayerType } from "../chess/game.js";
 import { setEval } from "../util.js";
-const go = new window.Go();
 // PUBLIC FUNCTION DEFINITIONS
 export function startUpdatingBotCommands(game) {
-    WebAssembly.instantiateStreaming(fetch("go/main.wasm"), go.importObject)
-        .then(async (result) => {
-        go.run(result.instance);
-        game.onBotToMove(() => {
-            setTimeout(() => {
-                console.log("SENDING: " + "'" + getFEN(game.board) + "'");
-                const data = window.GetBotMove("classic", 0, 2000, getFEN(game.board));
-                const parts = data.split("-");
-                const rawMove = parts[0];
-                const flag = Number(parts[1]);
-                console.log("RECIEVED: " + "'" + data + "'");
-                const move = {
-                    start: rawMove.slice(0, 2),
-                    end: rawMove.slice(2, 4),
-                    flag: flag,
-                };
-                game.playMove(move);
-                const evalRaw = window.GetBotEval("classic", 0, getFEN(game.board));
-                setEval(Number(evalRaw));
-            }, 100);
+    game.onBotToMove(() => {
+        const fen = getFEN(game.board);
+        console.log("SENDING: " + "'" + fen + "'");
+        const now = Date.now();
+        fetch(`http://ec2-54-176-147-174.us-west-1.compute.amazonaws.com:8080/minimax/bestmove?fen=${fen}`)
+            .then((response) => {
+            if (!response.ok) {
+                throw new Error("Bot server was not OK" + response.statusText);
+            }
+            return response.json();
+        })
+            .then((data) => {
+            console.log(`TIME ELAPSED MILLI: ${Date.now() - now}`);
+            const rawMove = data["best_move"];
+            const flag = data["move_flag"];
+            console.log("RECIEVED: " + "'" + rawMove + "'");
+            const move = {
+                start: rawMove.slice(0, 2),
+                end: rawMove.slice(2, 4),
+                flag: flag,
+            };
+            game.playMove(move);
+            return fetch(`http://ec2-54-176-147-174.us-west-1.compute.amazonaws.com:8080/minimax/eval?fen=${fen}`);
+        })
+            .then((response) => {
+            if (!response.ok) {
+                throw new Error("Bot server getting eval was not OK" + response.statusText);
+            }
+            return response.json();
+        })
+            .then((data) => {
+            setEval(data["eval"]);
+        })
+            .catch((error) => {
+            console.error("There was a problem with the fetch operation:", error);
         });
-    })
-        .then((result) => {
-        if (game.playerTypeWhite === PlayerType.BOT) {
-            game.callWhenBotToMove();
-        }
     });
 }

@@ -119,6 +119,9 @@ export class Game {
    */
   onBotToMove(func: () => void) {
     this.callWhenBotToMove = func;
+    if (this.board.toMove == WHITE && this.playerTypeWhite == PlayerType.BOT) {
+      this.callWhenBotToMove();
+    }
   }
 
   /**
