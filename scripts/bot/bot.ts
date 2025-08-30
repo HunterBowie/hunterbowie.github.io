@@ -10,9 +10,7 @@ export function startUpdatingBotCommands(game: Game) {
     const fen = getFEN(game.board);
     console.log("SENDING: " + "'" + fen + "'");
     const now = Date.now();
-    fetch(
-      `http://ec2-54-176-147-174.us-west-1.compute.amazonaws.com:8080/minimax/bestmove?fen=${fen}`
-    )
+    fetch(`https://hunterbowie.com/minimax/getBestMove?fen=${fen}`)
       .then((response) => {
         if (!response.ok) {
           throw new Error("Bot server was not OK" + response.statusText);
@@ -35,9 +33,7 @@ export function startUpdatingBotCommands(game: Game) {
 
         game.playMove(move);
 
-        return fetch(
-          `http://ec2-54-176-147-174.us-west-1.compute.amazonaws.com:8080/minimax/eval?fen=${fen}`
-        );
+        return fetch(`https://hunterbowie.com/minimax/getEval?fen=${fen}`);
       })
       .then((response) => {
         if (!response.ok) {
